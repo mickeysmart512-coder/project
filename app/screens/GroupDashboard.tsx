@@ -4,6 +4,8 @@ import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 
+
+
 const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A';
   const date = new Date(timestamp.seconds * 1000);
