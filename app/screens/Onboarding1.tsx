@@ -11,10 +11,7 @@ const OnboardingPage1 = ({ navigation }) => {
       <View style={styles.bottomContainer}>
         <Text style={styles.title}>Welcome Onboard</Text>
         
-        <Image 
-          source={{ uri: '../../assets/image.png' }} 
-          style={styles.image} 
-        />
+        <Image source={require('../../assets/image.png')} style={styles.image} />
         {/* Add some descriptive text about the app */}
         <Text style={styles.description}>
           Manage your finances efficiently and effortlessly with our app. Track your expenses, monitor your investments, and achieve your financial goals with ease.

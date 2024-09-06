@@ -5,7 +5,7 @@ const LandingPage = ({ navigation }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.navigate('Onboarding1');
-    }, 5000);
+    }, 8000);
 
     return () => clearTimeout(timer);
   }, [navigation]);

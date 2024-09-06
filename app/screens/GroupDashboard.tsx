@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } fr
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, arrayRemove, deleteDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import moment from 'moment';
 
-
-
+// Format Date Function
 const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A';
   const date = new Date(timestamp.seconds * 1000);
@@ -20,9 +20,13 @@ const GroupDashboard = ({ route, navigation }) => {
   const [hasPaidContribution, setHasPaidContribution] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(true);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [contributionDays, setContributionDays] = useState([]);
+  const [payoutDay, setPayoutDay] = useState('');
+  const [nextDueDate, setNextDueDate] = useState('');
   const db = getFirestore();
   const auth = getAuth();
 
+  // Set current user ID
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -35,6 +39,7 @@ const GroupDashboard = ({ route, navigation }) => {
     return () => unsubscribe();
   }, [auth]);
 
+  // Fetch group details and users
   useEffect(() => {
     const fetchGroupDetails = async () => {
       if (!groupId) {
@@ -47,11 +52,52 @@ const GroupDashboard = ({ route, navigation }) => {
           const groupData = groupDoc.data();
           setGroup(groupData);
 
+          // Calculate contribution days and payout day
+          const groupCreationDay = moment(groupData.createdAt.toDate());
+          let contributionDays = [];
+          let payoutDay = '';
+
+          // Logic for determining contribution and payout days
+          switch (groupCreationDay.format('dddd')) {
+            case 'Monday':
+              contributionDays = ['Wednesday', 'Thursday'];
+              payoutDay = 'Sunday';
+              break;
+            case 'Tuesday':
+              contributionDays = ['Thursday', 'Friday'];
+              payoutDay = 'Monday';
+              break;
+            case 'Wednesday':
+              contributionDays = ['Friday', 'Saturday'];
+              payoutDay = 'Tuesday';
+              break;
+            default:
+              contributionDays = ['Wednesday', 'Thursday'];
+              payoutDay = 'Sunday';
+          }
+
+          setContributionDays(contributionDays);
+          setPayoutDay(payoutDay);
+
+          // Calculate the next due date for contributions
+          const today = moment();
+          let nextDue = today;
+
+          if (contributionDays.includes(today.format('dddd'))) {
+            nextDue = today;
+          } else {
+            nextDue = moment().day(contributionDays[0]); // Set to the next contribution day
+          }
+
+          setNextDueDate(nextDue.format('DD/MM/YYYY'));
+
+          // Fetch users
           const usersQuery = query(collection(db, 'users'), where('groupId', '==', groupId));
           const querySnapshot = await getDocs(usersQuery);
           const usersList = querySnapshot.docs.map(doc => doc.data());
           setUsers(usersList);
 
+          // Check if current user has paid registration fee and contribution
           const currentUser = usersList.find(user => user.id === currentUserId);
           if (currentUser) {
             setHasPaidRegistrationFee(currentUser.hasPaidRegistrationFee);
@@ -68,10 +114,7 @@ const GroupDashboard = ({ route, navigation }) => {
     fetchGroupDetails();
   }, [db, groupId, currentUserId]);
 
-  const handleCloseAnnouncement = () => {
-    setShowAnnouncement(false);
-  };
-
+  // Handle Pay Registration Fee
   const handlePayRegistrationFee = async () => {
     try {
       if (group.isRegistrationFee && !hasPaidRegistrationFee) {
@@ -95,6 +138,7 @@ const GroupDashboard = ({ route, navigation }) => {
     }
   };
 
+  // Handle Leave Group
   const handleLeaveGroup = async () => {
     if (!currentUserId) {
       console.error('Current user ID is not defined');
@@ -152,6 +196,22 @@ const GroupDashboard = ({ route, navigation }) => {
     );
   };
 
+  // Handle Pay Contribution
+  const handlePayContribution = () => {
+    const today = moment().format('dddd');
+    if (!contributionDays.includes(today)) {
+      Alert.alert('Info', `You can only make contributions on ${contributionDays.join(' and ')}.`);
+      return;
+    }
+
+    // Handle the contribution payment logic here
+  };
+
+  // Handle Close Announcement
+  const handleCloseAnnouncement = () => {
+    setShowAnnouncement(false);
+  };
+
   if (!group) {
     return <Text>Loading...</Text>;
   }
@@ -186,6 +246,11 @@ const GroupDashboard = ({ route, navigation }) => {
         </Modal>
       )}
 
+      <Text style={styles.title}>Group Dashboard</Text>
+
+      <Text style={styles.groupName}>{group.name}</Text>
+      <Text style={styles.groupDescription}>{group.description}</Text>
+
       <View style={styles.goalSection}>
         <Text style={styles.goalText}>Duration: {formatDate(group.startDate)} - {formatDate(group.endDate)}</Text>
       </View>
@@ -202,218 +267,117 @@ const GroupDashboard = ({ route, navigation }) => {
         <Text style={styles.profitAmount}>No Contribution</Text>
       </View>
 
-      <View style={styles.graphSection}>
-        <View style={styles.graphPlaceholder}>
-          <Text>No graph available</Text>
-        </View>
-        <Text style={styles.graphCycle}>Cycle Completed: Twice</Text>
+      <View style={styles.paymentSection}>
+        {!hasPaidRegistrationFee && group.isRegistrationFee && (
+          <TouchableOpacity onPress={handlePayRegistrationFee} style={styles.payButton}>
+            <Text style={styles.payButtonText}>Pay Registration Fee</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity onPress={handlePayContribution} style={styles.payButton}>
+          <Text style={styles.payButtonText}>Pay Contribution</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.nextDueDateText}>Next Due Date: {nextDueDate}</Text>
       </View>
 
-      <View style={styles.contributionSection}>
-        <View style={styles.contributionCard}>
-          <Text style={styles.contributionText}>Total Contribution</Text>
-          <Text style={styles.contributionAmount}>No Contribution</Text>
-        </View>
-        <View style={styles.payoutCard}>
-          <Text style={styles.payoutText}>Paid Out</Text>
-          <Text style={styles.payoutAmount}>No</Text>
-        </View>
+      <View style={styles.memberSection}>
+        <Text style={styles.memberSectionTitle}>Group Members</Text>
+        {users.map(user => (
+          <Text key={user.id} style={styles.memberText}>{user.username}</Text>
+        ))}
       </View>
-
-      {group.isRegistrationFee && !hasPaidRegistrationFee && (
-        <View style={styles.pendingPaymentsSection}>
-          <Text style={styles.pendingPaymentsTitle}>Pending Payments</Text>
-          <View style={styles.pendingPaymentCard}>
-            <Text style={styles.pendingStatus}>Registration Fee: ₦{group.registrationFeeAmount || 'N/A'}</Text>
-            <TouchableOpacity style={styles.payNowButton} onPress={handlePayRegistrationFee}>
-              <Text style={styles.payNowText}>Pay Now</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {!hasPaidContribution && (
-        <View style={styles.pendingPaymentsSection}>
-          <Text style={styles.pendingPaymentsTitle}>Pending Payments</Text>
-          <View style={styles.pendingPaymentCard}>
-            <Text style={styles.pendingStatus}>Contribution: ₦{group.contributionAmount || 'N/A'}</Text>
-            <TouchableOpacity style={styles.payNowButton} onPress={handlePayRegistrationFee}>
-              <Text style={styles.payNowText}>Pay Now</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      <Text style={styles.latestContributionsTitle}>Latest Contributions</Text>
-
-      {users.map((user, index) => (
-        <View key={index} style={styles.userContainer}>
-          <Text style={styles.username}>{user.username}</Text>
-          <Text style={styles.paymentStatus}>
-            {user.hasPaidRegistrationFee ? 'Paid' : 'Unpaid'} | {user.hasPaidContribution ? 'Paid' : 'Unpaid'}
-          </Text>
-        </View>
-      ))}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 16,
+    flexGrow: 1,
     backgroundColor: '#fff',
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   headerTitle: {
-    flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    textAlign: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  groupName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  groupDescription: {
+    fontSize: 16,
+    marginBottom: 15,
   },
   goalSection: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    marginBottom: 20,
+  },
+  goalText: {
+    fontSize: 16,
   },
   payoutDetailsSection: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    marginBottom: 20,
   },
   payoutDetailsTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   payoutDetailsText: {
-    fontSize: 14,
-    marginBottom: 4,
+    fontSize: 16,
+    marginBottom: 5,
   },
   profitSection: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+    marginBottom: 20,
   },
   profitText: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 8,
   },
   profitAmount: {
-    fontSize: 14,
+    fontSize: 16,
   },
-  graphSection: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
+  paymentSection: {
+    marginBottom: 20,
   },
-  graphPlaceholder: {
-    height: 100,
-    justifyContent: 'center',
+  payButton: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
     alignItems: 'center',
-    backgroundColor: '#eee',
-    borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  graphCycle: {
-    fontSize: 14,
-    color: '#555',
-  },
-  contributionSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  contributionCard: {
-    flex: 1,
-    marginRight: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-  },
-  payoutCard: {
-    flex: 1,
-    marginLeft: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-  },
-  contributionText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  contributionAmount: {
-    fontSize: 14,
-  },
-  payoutText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  payoutAmount: {
-    fontSize: 14,
-  },
-  pendingPaymentsSection: {
-    marginBottom: 16,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-  },
-  pendingPaymentsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  pendingPaymentCard: {
-    padding: 12,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 2,
-  },
-  pendingStatus: {
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  payNowButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  payNowText: {
+  payButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  latestContributionsTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
-  userContainer: {
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  username: {
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  paymentStatus: {
-    fontSize: 14,
+  nextDueDateText: {
+    fontSize: 16,
     color: '#555',
+  },
+  memberSection: {
+    marginBottom: 20,
+  },
+  memberSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  memberText: {
+    fontSize: 16,
+    marginBottom: 5,
   },
   announcementModal: {
     flex: 1,
@@ -422,13 +386,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   announcementModalContent: {
-    width: '80%',
-    padding: 20,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
   },
   announcementModalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
   },
@@ -437,16 +402,13 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   closeButton: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    alignItems: 'center',
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
   },
   closeButtonText: {
     color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
   },
 });
 
