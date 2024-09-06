@@ -102,7 +102,7 @@ blueCircle: {
     flexDirection: 'row',
     marginTop: -90,
     marginVertical: 20,
-    top: -10,
+    top: -30,
   },
   img:{
     width: 200,

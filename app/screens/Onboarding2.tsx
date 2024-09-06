@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from 'react-native';
 import { PermissionsAndroid } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+
 
 const requestPermissions = async () => {
   if (Platform.OS === 'android') {
@@ -39,8 +41,10 @@ const OnboardingPage2 = ({ navigation }) => {
         <Text style={styles.title}>Almost There</Text>
         <Text style={styles.description}>Please grant the following permissions to continue:</Text>
         <View style={styles.permissionsList}>
-          <Text style={styles.permissionItem}>• Camera</Text>
-          <Text style={styles.permissionItem}>• Location</Text>
+          <Text style={styles.permissionItem}><MaterialIcons name="photo" size={24} color="#3B82F6" style={styles.icon} />
+ Camera</Text>
+          <Text style={styles.permissionItem}><MaterialIcons name="map" size={24} color="#3B82F6" style={styles.icon} />
+ Location</Text>
           <Text style={styles.permissionItem}>• Microphone</Text>
         </View>
         <TouchableOpacity
