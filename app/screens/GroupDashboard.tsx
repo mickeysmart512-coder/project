@@ -258,7 +258,7 @@ const GroupDashboard = ({ route, navigation }) => {
       <View style={styles.payoutDetailsSection}>
         <Text style={styles.payoutDetailsTitle}>Payout Details</Text>
         <Text style={styles.payoutDetailsText}>Payout Option: {group.payoutPlan || 'N/A'}</Text>
-        <Text style={styles.payoutDetailsText}>Duration: {group.contributionDuration || 'N/A'}</Text>
+        <Text style={styles.payoutDetailsText}>Contribution Duration: {group.contributionDuration || 'N/A'}</Text>
         <Text style={styles.payoutDetailsText}>Payout Per Person: ₦{group.payoutPerUser || 'N/A'}</Text>
       </View>
 

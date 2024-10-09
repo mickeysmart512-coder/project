@@ -123,7 +123,7 @@ const AccountScreen = ({ navigation }: Props) => {
           <Text style={styles.balanceTitle}>Available Balance</Text>
           <Text style={styles.balanceAmount}>₦{userData.wallet.toFixed(2)}</Text>
           <Text style={styles.accountNumber}>**** **** **** 8635</Text>
-          <Text style={styles.accountHolder}>Account Holder: {userData.username}</Text>
+          <Text style={styles.accountHolder}>Username: {userData.username}</Text>
         </View>
       </View>
 
@@ -135,8 +135,10 @@ const AccountScreen = ({ navigation }: Props) => {
           </Text>
         </View>
         <View style={styles.statusBox}>
+          <TouchableOpacity onPress={()=> navigation.navigate('AccountVerification')}>
           <Text style={styles.statusText}>Verification</Text>
           <Text style={styles.statusInactive}>Not Verified</Text>
+          </TouchableOpacity>
         </View>
       </View>
 

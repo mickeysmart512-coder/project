@@ -5,7 +5,7 @@ import { NavigationProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
-import Loader from './Loader'; // Import the new Loader component
+import Loader from './Loader';
 
 interface RouterProps {
   navigation: NavigationProp<any, any>;
@@ -15,10 +15,10 @@ interface RouterProps {
 const Dashboard = ({ route, navigation }: RouterProps) => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  const [userBalance, setUserBalance] = useState<string | null>(null); // Change initial state to null
+  const [userBalance, setUserBalance] = useState<string | null>(null); 
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  const [showPinEntry, setShowPinEntry] = useState(false); // State for pin entry modal
+  const [showPinEntry, setShowPinEntry] = useState(false); 
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const user = route.params?.user || {};
@@ -154,9 +154,9 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
             <MaterialIcons name="attach-money" size={24} color="#EF4444" />
             <Text style={styles.quickActionText}>Deposit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate('ToMember')}>
+          <TouchableOpacity style={styles.quickAction} onPress={() => navigation.navigate('NotAvailable')}>
             <MaterialIcons name="compare-arrows" size={24} color="#6B7280" />
-            <Text style={styles.quickActionText}>Transfer</Text>
+            <Text style={styles.quickActionText}>Loan</Text>
           </TouchableOpacity>
         </View>
 
@@ -171,8 +171,8 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
             <Text style={styles.serviceText}>Budget Planner</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.serviceItem} onPress={() => navigation.navigate('NotAvailable')}>
-            <FontAwesome5 name="wallet" size={24} color="#3B82F6" />
-            <Text style={styles.serviceText}>Loan</Text>
+            <FontAwesome5 name="shield-alt" size={24} color="#3B82F6" />
+            <Text style={styles.serviceText}>Security</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.serviceItem}>
             <FontAwesome5 name="bullseye" size={24} color="#3B82F6" />
@@ -226,7 +226,7 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
           </TouchableOpacity>
       
 
-        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('NotAvailable')}>
+        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('TransactionHistory')}>
           <Ionicons name="wallet" size={24} color="white" />
         </TouchableOpacity>
 

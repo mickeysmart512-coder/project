@@ -5,7 +5,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FIREBASE_AUTH } from '../../FirebaseConfig';
 
-const Login = ({ navigation }) => {
+const Login = ({ navigation }: { navigation: any}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -70,6 +70,8 @@ const Login = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
           <Text style={styles.forgotPasswordText}>Forget Password?</Text>
         </TouchableOpacity>
+              {/* navigation.navigate('InsideLayout', { screen: 'Settings' }); */}
+
         <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
           <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
         </TouchableOpacity>

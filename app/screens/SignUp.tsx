@@ -5,7 +5,7 @@ import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
-const SignUp = ({ navigation }) => {
+const SignUp = ({ navigation }:{ navigation: any }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -78,7 +78,7 @@ const SignUp = ({ navigation }) => {
 
       console.log('User registered and details saved to Firestore');
       alert('Check your email');
-      navigation.navigate('CreateLoginPin'); // Navigate to CreateLoginPin after successful sign up
+      navigation.navigate('CreateLoginPin'); 
     } catch (error) {
       console.log(error);
       alert('Sign up failed: ' + error.message);
@@ -144,6 +144,7 @@ const SignUp = ({ navigation }) => {
           {loading && <ActivityIndicator size="large" color="#0000ff" />}
         </TouchableOpacity>
       </View>
+
     </View>
   );
 };

@@ -1,0 +1,260 @@
+// import React, { useState, useCallback, useEffect, useRef } from 'react';
+// import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, Animated, Easing } from 'react-native';
+// import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
+// import { NavigationProp } from '@react-navigation/native';
+
+// import { StackNavigationProp } from '@react-navigation/stack';
+
+
+
+// const TransactionHistory = ({ navigation }: RouterProps) => {
+//     const [showQuickActions, setShowQuickActions] = useState(false);
+//     const [showOptionsMenu, setShowOptionsMenu] = useState(false);
+  
+//     const depositAnim = useRef(new Animated.Value(0)).current;
+//     const withdrawAnim = useRef(new Animated.Value(0)).current;
+//     const optionsMenuAnim = useRef(new Animated.Value(0)).current;
+
+
+    
+//   const toggleQuickActions = () => {
+//     setShowQuickActions(!showQuickActions);
+//     if (!showQuickActions) {
+//       Animated.parallel([
+//         Animated.timing(depositAnim, {
+//           toValue: 1,
+//           duration: 300,
+//           easing: Easing.out(Easing.quad),
+//           useNativeDriver: true,
+//         }),
+//         Animated.timing(withdrawAnim, {
+//           toValue: 1,
+//           duration: 300,
+//           easing: Easing.out(Easing.quad),
+//           useNativeDriver: true,
+//         }),
+//       ]).start();
+//     } else {
+//       Animated.parallel([
+//         Animated.timing(depositAnim, {
+//           toValue: 0,
+//           duration: 300,
+//           easing: Easing.in(Easing.quad),
+//           useNativeDriver: true,
+//         }),
+//         Animated.timing(withdrawAnim, {
+//           toValue: 0,
+//           duration: 300,
+//           easing: Easing.in(Easing.quad),
+//           useNativeDriver: true,
+//         }),
+//       ]).start();
+//     }
+//   };
+
+
+//   const toggleOptionsMenu = () => {
+//     setShowOptionsMenu(!showOptionsMenu);
+//     Animated.timing(optionsMenuAnim, {
+//       toValue: showOptionsMenu ? 0 : 1,
+//       duration: 300,
+//       useNativeDriver: true,
+//       easing: Easing.bounce,
+//     }).start();
+//   };
+
+//   return (
+//     <View>
+//       <View style={styles.footer}>
+//         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Dashboard')}>
+//           <Ionicons name="home" size={24} color="white" />
+//         </TouchableOpacity>
+//         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Groups')}>
+//           <Ionicons name="people" size={24} color="#ccc" />
+//         </TouchableOpacity>
+//         <TouchableOpacity style={styles.centerIconContainer} onPress={toggleQuickActions}>
+//           <Ionicons name="swap-horizontal" size={24} color="white" />
+//         </TouchableOpacity>
+//         <TouchableOpacity style={styles.footerButton}>
+//           <Ionicons name="wallet" size={24} color="white" />
+//         </TouchableOpacity>
+//         <TouchableOpacity style={styles.footerButton} onPress={toggleOptionsMenu}>
+//           <Ionicons name="grid" size={24} color="white" />
+//         </TouchableOpacity>
+//       </View>
+//       {showQuickActions && (
+//         <View style={styles.quickActionsOverlay}>
+//           <Animated.View style={[styles.animatedButton, { transform: [{ scale: depositAnim }] }]}>
+//             <TouchableOpacity style={styles.quickActiontoggle} onPress={() => navigation.navigate('Deposit')}>
+//               <Ionicons name="arrow-down" size={24} color="white" />
+//               <Text style={styles.quickActionText}>Deposit</Text>
+//             </TouchableOpacity>
+//           </Animated.View>
+//           <Animated.View style={[styles.animatedButton, { transform: [{ scale: withdrawAnim }] }]}>
+//             <TouchableOpacity style={styles.quickActiontoggle} onPress={() => navigation.navigate('Withdraw')}>
+//               <Ionicons name="arrow-up" size={24} color="white" />
+//               <Text style={styles.quickActionText}>Withdraw</Text>
+//             </TouchableOpacity>
+//           </Animated.View>
+//         </View>
+//       )}
+//       {showOptionsMenu && (
+//         <Animated.View style={[styles.optionsMenu, { opacity: optionsMenuAnim }]}>
+//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ManageProfile')}>
+//             <Text>Manage Profile</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
+//             <Text>Logout</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Complaints')}>
+//             <Text>Complaints</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ContactUs')}>
+//             <Text>Contact Us</Text>
+//           </TouchableOpacity>
+//         </Animated.View>
+//       )}
+//     </View>
+//   )
+// }
+// const styles = StyleSheet.create({
+//     container: {
+//       flex: 1,
+//       backgroundColor: '#f0f0f0',
+//     },
+//     scrollContainer: {
+//       paddingHorizontal: 16,
+//       paddingBottom: 16,
+//       marginTop: 50,
+//     },
+//     groupContainer: {
+//       backgroundColor: '#F9FAFB',
+//       padding: 16,
+//       borderRadius: 10,
+//       marginBottom: 16,
+//     },
+//     groupHeader: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       alignItems: 'center',
+//       marginBottom: 8,
+//     },
+//     groupTitle: {
+//       fontSize: 18,
+//       fontWeight: 'bold',
+//     },
+//     groupDescription: {
+//       fontSize: 14,
+//       color: '#6B7280',
+//       marginBottom: 8,
+//     },
+//     groupSize: {
+//       fontSize: 14,
+//       color: '#6B7280',
+//     },
+//     groupCreator: {
+//       fontSize: 14,
+//       color: '#6B7280',
+//     },
+//     footer: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-around',
+//       paddingVertical: 10,
+//       backgroundColor: '#4B0082',
+//       borderTopWidth: 1,
+//       borderTopColor: '#ccc',
+//       height: 80,
+//       marginTop: 110,
+//       bottom: -5,
+//       position: 'static',
+//     },
+//     footerButton: {
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//       padding: 10,
+//       borderRadius: 24,
+//     },
+//     centerIconContainer: {
+//       width: 80,
+//       height: 80,
+//       borderRadius: 50,
+//       backgroundColor: '#3B82F6',
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//       marginTop: -35,
+//     },
+//     fab: {
+//       position: 'absolute',
+//       bottom: 100,
+//       right: 20,
+//       backgroundColor: '#3B82F6',
+//       borderRadius: 25,
+//       padding: 15,
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//       elevation: 4,
+//     },
+//     quickActionsOverlay: {
+//       position: 'absolute',
+//       bottom: 130,
+//       right: 20,
+//     },
+//     animatedButton: {
+//       marginBottom: 10,
+//     },
+//     quickActiontoggle: {
+//       backgroundColor: '#FFF',
+//       borderRadius: 25,
+//       padding: 10,
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//     },
+//     quickActionText: {
+//       marginLeft: 8,
+//       color: '#374151',
+//     },
+//     optionsMenu: {
+//       position: 'absolute',
+//       bottom: 70,
+//       right: 20,
+//       backgroundColor: '#FFF',
+//       borderRadius: 10,
+//       elevation: 4,
+//     },
+//     optionItem: {
+//       padding: 16,
+//       borderBottomWidth: 1,
+//       borderBottomColor: '#F3F4F6',
+//     },
+//     optionText: {
+//       fontSize: 16,
+//       color: '#374151',
+//     },
+    
+//     });
+
+// export default TransactionHistory
+
+
+
+
+
+
+
+
+
+import { StyleSheet, Text, View } from 'react-native'
+import React from 'react'
+
+const TransactionHistory = () => {
+  return (
+    <View>
+      <Text>TransactionHistory</Text>
+    </View>
+  )
+}
+
+export default TransactionHistory
+
+const styles = StyleSheet.create({})

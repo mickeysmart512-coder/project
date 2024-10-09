@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const LandingPage = ({ navigation }) => {
+const LandingPage = ({ navigation }:{navigation: any }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       navigation.navigate('Onboarding1');
-    }, 5000);
+    }, 6000);
 
 
 

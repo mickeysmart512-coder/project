@@ -19,7 +19,6 @@ import MobileVerificationScreen from './app/screens/MobileVerification';
 import EmailVerificationScreen from './app/screens/EmailVerification';
 import Withdraw from './app/screens/Withdraw';
 import Deposit from './app/screens/Deposit';
-import ToMember from './app/screens/ToMember';
 import Profile from './app/screens/Profile';
 import Notifications from './app/screens/Notifications';
 import EditProfile from './app/screens/EditProfile';
@@ -40,6 +39,8 @@ import AccountScreen from './app/screens/AccountScreen';
 import Complaint from './app/screens/Complaint';
 import CreatePaymentPin from './app/screens/CreatePaymentPin';
 import GroupDashboard from './app/screens/GroupDashboard';
+import TransactionHistory from './app/screens/TransactionHistory';
+import VirtualAccount from './app/screens/VirtualAccount';
 
 const Stack = createNativeStackNavigator();
 const InsideStack = createNativeStackNavigator();
@@ -88,12 +89,16 @@ export default function App() {
           <>
             <Stack.Screen name="LoginPin" component={LoginPin} />
             <Stack.Screen name="InsideLayout" component={InsideLayout} />
+            <Stack.Screen name="Login" component={Login} />
+            <Stack.Screen name="SignUp" component={SignUp} />
+
+
           </>
         ) : (
           <>
             <Stack.Screen name="LandingPage" component={LandingPage} />
-            <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="SignUp" component={SignUp} />
+            <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Onboarding1" component={OnboardingPage1} />
             <Stack.Screen name="Onboarding2" component={OnboardingPage2} />
             <Stack.Screen name="Onboarding3" component={OnboardingPage3} />
@@ -108,7 +113,6 @@ export default function App() {
         <Stack.Screen name="Deposit" component={Deposit} />
         <Stack.Screen name="CreateLoginPin" component={CreateLoginPin} />
         <Stack.Screen name="Withdraw" component={Withdraw} />
-        <Stack.Screen name="ToMember" component={ToMember} />
         <Stack.Screen name="Profile" component={Profile} />
         <Stack.Screen name="Groups" component={Groups} />
         <Stack.Screen name="CreateGroup" component={CreateGroup} />
@@ -128,6 +132,8 @@ export default function App() {
         <Stack.Screen name="Complaint" component={Complaint} />
         <Stack.Screen name="CreatePaymentPin" component={CreatePaymentPin} />
         <Stack.Screen name="GroupDashboard" component={GroupDashboard} />
+        <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
+        <Stack.Screen name="VirtualAccount" component={VirtualAccount} />
       </Stack.Navigator>
     </NavigationContainer>
   );
