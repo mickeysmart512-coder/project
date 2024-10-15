@@ -135,7 +135,7 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
             </TouchableOpacity>
             <Text style={styles.balanceTitle}>Available Balance</Text>
             {userBalance === null ? (
-              <Loader /> // Use Loader component here
+              <Loader /> 
             ) : (
               <Text style={styles.balanceAmount}>₦{userBalance}</Text>
             )}
@@ -177,10 +177,6 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
           <TouchableOpacity style={styles.serviceItem}>
             <FontAwesome5 name="bullseye" size={24} color="#3B82F6" />
             <Text style={styles.serviceText}>Savings Goal</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.serviceItem} onPress={() => navigation.navigate('NotAvailable')}>
-            <FontAwesome5 name="shield-alt" size={24} color="#3B82F6" />
-            <Text style={styles.serviceText}>Insurance</Text>
           </TouchableOpacity>
         </View>
 
