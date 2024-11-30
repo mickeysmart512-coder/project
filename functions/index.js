@@ -1,44 +1,51 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-const crypto = require('crypto');
+const express = require('express');
+const bodyParser = require('body-parser');
 
+// Initialize Firebase Admin SDK
 admin.initializeApp();
 
-const PAYSTACK_SECRET_KEY = 'sk_test_8246f76e8d309d189364e3b0f0fcee40ddebd688';
+// Create an Express app
+const app = express();
 
-exports.paystackWebhook = functions.https.onRequest(async (req, res) => {
-    const paystackSignature = req.headers['x-paystack-signature'];
+// Use bodyParser to parse incoming JSON requests
+app.use(bodyParser.json());
 
-    // Verify Paystack signature
-    const hash = crypto
-        .createHmac('sha512', PAYSTACK_SECRET_KEY)
-        .update(JSON.stringify(req.body))
-        .digest('hex');
+// Webhook endpoint for Monnify
+app.post('/monnify-webhook', async (req, res) => {
+  try {
+    const data = req.body; // The payload from Monnify
 
-    if (hash !== paystackSignature) {
-        return res.status(400).send('Invalid signature');
+    // Log data for debugging purposes
+    console.log('Webhook Data Received:', data);
+
+    // Extract necessary fields (e.g., transaction details)
+    const transactionStatus = data.event; // e.g., "SUCCESSFUL_PAYMENT"
+    const paymentDetails = data.paymentDetails;
+
+    // Check if the event is a successful payment
+    if (transactionStatus === 'SUCCESSFUL_PAYMENT') {
+      const transactionId = paymentDetails.transactionReference;
+      const amountPaid = paymentDetails.amountPaid;
+      const userId = paymentDetails.customer.email;
+
+      // Save transaction details in Firestore
+      await admin.firestore().collection('transactions').doc(transactionId).set({
+        userId,
+        amountPaid,
+        status: transactionStatus,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      });
     }
 
-    const event = req.body.event;
-    const data = req.body.data;
-
-    // Handle successful payment event
-    if (event === 'charge.success') {
-        const userId = data.metadata.user_id; // user_id from the payment metadata
-        const amount = data.amount / 100; // Amount in naira (convert from kobo)
-
-        try {
-            // Update user's wallet balance in Firestore
-            const userRef = admin.firestore().collection('users').doc(userId);
-            await userRef.update({
-                walletBalance: admin.firestore.FieldValue.increment(amount)
-            });
-            return res.status(200).send('Payment processed and balance updated');
-        } catch (error) {
-            console.error('Error updating user balance:', error);
-            return res.status(500).send('Internal Server Error');
-        }
-    }
-
-    return res.status(400).send('Event not handled');
+    // Respond to Monnify
+    res.status(200).send('Webhook received successfully');
+  } catch (error) {
+    console.error('Error handling webhook:', error);
+    res.status(500).send('Server Error');
+  }
 });
+
+// Expose the Express app as a Firebase function
+exports.api = functions.https.onRequest(app);

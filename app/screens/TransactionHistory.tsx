@@ -1,240 +1,118 @@
-// import React, { useState, useCallback, useEffect, useRef } from 'react';
-// import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, Animated, Easing } from 'react-native';
-// import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
-// import { NavigationProp } from '@react-navigation/native';
+// import React from 'react';
+// import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
+// import { useNavigation } from '@react-navigation/native';
 
-// import { StackNavigationProp } from '@react-navigation/stack';
+// // Mock transaction data
+// const transactions = [
+//   {
+//     id: '1',
+//     type: 'Deposit',
+//     amount: 5000,
+//     date: '2024-11-28 14:30',
+//     transactionId: 'TXN123456', 
+//     status: 'Success',
+//     accountNumber: '0012788558',
+//     bankName: 'Wema Bank',
+//   },
+//   {
+//     id: '2',
+//     type: 'Withdrawal',
+//     amount: 2000,
+//     date: '2024-11-27 12:15',
+//     transactionId: 'TXN654321',
+//     status: 'Success',
+//     accountNumber: '7007907678',
+//     bankName: 'Sterling Bank',
+//   },
+// ];
 
+// // Transaction Card Component
+// const TransactionCard = ({ transaction }) => {
+//   const navigation = useNavigation();
 
-
-// const TransactionHistory = ({ navigation }: RouterProps) => {
-//     const [showQuickActions, setShowQuickActions] = useState(false);
-//     const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  
-//     const depositAnim = useRef(new Animated.Value(0)).current;
-//     const withdrawAnim = useRef(new Animated.Value(0)).current;
-//     const optionsMenuAnim = useRef(new Animated.Value(0)).current;
-
-
-    
-//   const toggleQuickActions = () => {
-//     setShowQuickActions(!showQuickActions);
-//     if (!showQuickActions) {
-//       Animated.parallel([
-//         Animated.timing(depositAnim, {
-//           toValue: 1,
-//           duration: 300,
-//           easing: Easing.out(Easing.quad),
-//           useNativeDriver: true,
-//         }),
-//         Animated.timing(withdrawAnim, {
-//           toValue: 1,
-//           duration: 300,
-//           easing: Easing.out(Easing.quad),
-//           useNativeDriver: true,
-//         }),
-//       ]).start();
-//     } else {
-//       Animated.parallel([
-//         Animated.timing(depositAnim, {
-//           toValue: 0,
-//           duration: 300,
-//           easing: Easing.in(Easing.quad),
-//           useNativeDriver: true,
-//         }),
-//         Animated.timing(withdrawAnim, {
-//           toValue: 0,
-//           duration: 300,
-//           easing: Easing.in(Easing.quad),
-//           useNativeDriver: true,
-//         }),
-//       ]).start();
-//     }
-//   };
-
-
-//   const toggleOptionsMenu = () => {
-//     setShowOptionsMenu(!showOptionsMenu);
-//     Animated.timing(optionsMenuAnim, {
-//       toValue: showOptionsMenu ? 0 : 1,
-//       duration: 300,
-//       useNativeDriver: true,
-//       easing: Easing.bounce,
-//     }).start();
+//   const handlePress = () => {
+//     navigation.navigate('ReceiptScreen', { transaction });
 //   };
 
 //   return (
-//     <View>
-//       <View style={styles.footer}>
-//         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Dashboard')}>
-//           <Ionicons name="home" size={24} color="white" />
-//         </TouchableOpacity>
-//         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('Groups')}>
-//           <Ionicons name="people" size={24} color="#ccc" />
-//         </TouchableOpacity>
-//         <TouchableOpacity style={styles.centerIconContainer} onPress={toggleQuickActions}>
-//           <Ionicons name="swap-horizontal" size={24} color="white" />
-//         </TouchableOpacity>
-//         <TouchableOpacity style={styles.footerButton}>
-//           <Ionicons name="wallet" size={24} color="white" />
-//         </TouchableOpacity>
-//         <TouchableOpacity style={styles.footerButton} onPress={toggleOptionsMenu}>
-//           <Ionicons name="grid" size={24} color="white" />
-//         </TouchableOpacity>
-//       </View>
-//       {showQuickActions && (
-//         <View style={styles.quickActionsOverlay}>
-//           <Animated.View style={[styles.animatedButton, { transform: [{ scale: depositAnim }] }]}>
-//             <TouchableOpacity style={styles.quickActiontoggle} onPress={() => navigation.navigate('Deposit')}>
-//               <Ionicons name="arrow-down" size={24} color="white" />
-//               <Text style={styles.quickActionText}>Deposit</Text>
-//             </TouchableOpacity>
-//           </Animated.View>
-//           <Animated.View style={[styles.animatedButton, { transform: [{ scale: withdrawAnim }] }]}>
-//             <TouchableOpacity style={styles.quickActiontoggle} onPress={() => navigation.navigate('Withdraw')}>
-//               <Ionicons name="arrow-up" size={24} color="white" />
-//               <Text style={styles.quickActionText}>Withdraw</Text>
-//             </TouchableOpacity>
-//           </Animated.View>
-//         </View>
-//       )}
-//       {showOptionsMenu && (
-//         <Animated.View style={[styles.optionsMenu, { opacity: optionsMenuAnim }]}>
-//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ManageProfile')}>
-//             <Text>Manage Profile</Text>
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
-//             <Text>Logout</Text>
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Complaints')}>
-//             <Text>Complaints</Text>
-//           </TouchableOpacity>
-//           <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('ContactUs')}>
-//             <Text>Contact Us</Text>
-//           </TouchableOpacity>
-//         </Animated.View>
-//       )}
+//     <TouchableOpacity onPress={handlePress} style={styles.card}>
+//       <Text style={styles.type}>{transaction.type}</Text>
+//       <Text style={styles.amount}>Amount: ${transaction.amount}</Text>
+//       <Text style={styles.date}>Date: {transaction.date}</Text>
+//       <Text style={styles.transactionId}>Transaction ID: {transaction.transactionId}</Text>
+//       <Text style={styles.status}>Status: {transaction.status}</Text>
+//     </TouchableOpacity>
+//   );
+// };
+
+// // Main Transaction History Component
+// const TransactionHistory = () => {
+//   return (
+//     <View style={styles.container}>
+//       <Text style={styles.header}>Transaction History</Text>
+//       <FlatList
+//         data={transactions}
+//         keyExtractor={(item) => item.id}
+//         renderItem={({ item }) => <TransactionCard transaction={item} />}
+//         contentContainerStyle={styles.list}
+//       />
 //     </View>
-//   )
-// }
+//   );
+// };
+
+// export default TransactionHistory;
+
 // const styles = StyleSheet.create({
-//     container: {
-//       flex: 1,
-//       backgroundColor: '#f0f0f0',
-//     },
-//     scrollContainer: {
-//       paddingHorizontal: 16,
-//       paddingBottom: 16,
-//       marginTop: 50,
-//     },
-//     groupContainer: {
-//       backgroundColor: '#F9FAFB',
-//       padding: 16,
-//       borderRadius: 10,
-//       marginBottom: 16,
-//     },
-//     groupHeader: {
-//       flexDirection: 'row',
-//       justifyContent: 'space-between',
-//       alignItems: 'center',
-//       marginBottom: 8,
-//     },
-//     groupTitle: {
-//       fontSize: 18,
-//       fontWeight: 'bold',
-//     },
-//     groupDescription: {
-//       fontSize: 14,
-//       color: '#6B7280',
-//       marginBottom: 8,
-//     },
-//     groupSize: {
-//       fontSize: 14,
-//       color: '#6B7280',
-//     },
-//     groupCreator: {
-//       fontSize: 14,
-//       color: '#6B7280',
-//     },
-//     footer: {
-//       flexDirection: 'row',
-//       justifyContent: 'space-around',
-//       paddingVertical: 10,
-//       backgroundColor: '#4B0082',
-//       borderTopWidth: 1,
-//       borderTopColor: '#ccc',
-//       height: 80,
-//       marginTop: 110,
-//       bottom: -5,
-//       position: 'static',
-//     },
-//     footerButton: {
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       padding: 10,
-//       borderRadius: 24,
-//     },
-//     centerIconContainer: {
-//       width: 80,
-//       height: 80,
-//       borderRadius: 50,
-//       backgroundColor: '#3B82F6',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       marginTop: -35,
-//     },
-//     fab: {
-//       position: 'absolute',
-//       bottom: 100,
-//       right: 20,
-//       backgroundColor: '#3B82F6',
-//       borderRadius: 25,
-//       padding: 15,
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       elevation: 4,
-//     },
-//     quickActionsOverlay: {
-//       position: 'absolute',
-//       bottom: 130,
-//       right: 20,
-//     },
-//     animatedButton: {
-//       marginBottom: 10,
-//     },
-//     quickActiontoggle: {
-//       backgroundColor: '#FFF',
-//       borderRadius: 25,
-//       padding: 10,
-//       flexDirection: 'row',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//     },
-//     quickActionText: {
-//       marginLeft: 8,
-//       color: '#374151',
-//     },
-//     optionsMenu: {
-//       position: 'absolute',
-//       bottom: 70,
-//       right: 20,
-//       backgroundColor: '#FFF',
-//       borderRadius: 10,
-//       elevation: 4,
-//     },
-//     optionItem: {
-//       padding: 16,
-//       borderBottomWidth: 1,
-//       borderBottomColor: '#F3F4F6',
-//     },
-//     optionText: {
-//       fontSize: 16,
-//       color: '#374151',
-//     },
-    
-//     });
-
-// export default TransactionHistory
+//   container: {
+//     flex: 1,
+//     backgroundColor: '#f9f9f9',
+//     padding: 16,
+//   },
+//   header: {
+//     fontSize: 24,
+//     fontWeight: 'bold',
+//     marginBottom: 16,
+//   },
+//   list: {
+//     paddingBottom: 16,
+//   },
+//   card: {
+//     backgroundColor: '#fff',
+//     borderRadius: 8,
+//     padding: 16,
+//     marginBottom: 12,
+//     shadowColor: '#000',
+//     shadowOpacity: 0.1,
+//     shadowRadius: 4,
+//     shadowOffset: { width: 0, height: 2 },
+//     elevation: 2,
+//   },
+//   type: {
+//     fontSize: 18,
+//     fontWeight: 'bold',
+//     marginBottom: 4,
+//   },
+//   amount: {
+//     fontSize: 16,
+//     color: '#333',
+//     marginBottom: 4,
+//   },
+//   date: {
+//     fontSize: 14,
+//     color: '#666',
+//     marginBottom: 4,
+//   },
+//   transactionId: {
+//     fontSize: 14,
+//     color: '#666',
+//     marginBottom: 4,
+//   },
+//   status: {
+//     fontSize: 14,
+//     fontWeight: 'bold',
+//     color: '#4CAF50', // Green for success
+//   },
+// });
 
 
 
@@ -244,17 +122,150 @@
 
 
 
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+
+
+
+
+
+
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
+import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 const TransactionHistory = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Get the currently signed-in user
+  const currentUser = FIREBASE_AUTH.currentUser;
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchTransactions = async () => {
+      try {
+        const transactionsRef = collection(FIREBASE_DB, 'transactions');
+        const q = query(
+          transactionsRef,
+          where('userId', '==', currentUser.uid),
+          orderBy('createdAt', 'desc')
+        );
+
+        const querySnapshot = await getDocs(q);
+        const fetchedTransactions = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setTransactions(fetchedTransactions);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching transactions:', error.message);
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, [currentUser]);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    );
+  }
+
+  if (transactions.length === 0) {
+    return (
+      <View style={styles.noDataContainer}>
+        <Text style={styles.noDataText}>No transactions found.</Text>
+      </View>
+    );
+  }
+
   return (
-    <View>
-      <Text>TransactionHistory</Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Transaction History</Text>
+      <FlatList
+        data={transactions}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <View style={styles.transactionItem}>
+            <Text style={styles.description}>{item.description}</Text>
+            <Text style={styles.amount}>
+              {item.transactionType === 'deposit' ? '+' : '-'}${item.amount.toFixed(2)}
+            </Text>
+            <Text style={styles.status}>
+              Status: <Text style={styles[item.status]}>{item.status}</Text>
+            </Text>
+            <Text style={styles.date}>
+              {item.createdAt ? new Date(item.createdAt.seconds * 1000).toLocaleString() : 'N/A'}
+            </Text>
+          </View>
+        )}
+      />
     </View>
-  )
-}
+  );
+};
 
-export default TransactionHistory
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f8f8',
+    padding: 16,
+  },
+  header: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataText: {
+    fontSize: 16,
+    color: '#999',
+  },
+  transactionItem: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  description: {
+    fontSize: 14,
+    color: '#333',
+  },
+  amount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 5,
+  },
+  status: {
+    fontSize: 14,
+    marginTop: 5,
+  },
+  success: {
+    color: 'green',
+  },
+  failed: {
+    color: 'red',
+  },
+  date: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 5,
+  },
+});
 
-const styles = StyleSheet.create({})
+export default TransactionHistory;

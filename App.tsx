@@ -41,6 +41,7 @@ import CreatePaymentPin from './app/screens/CreatePaymentPin';
 import GroupDashboard from './app/screens/GroupDashboard';
 import TransactionHistory from './app/screens/TransactionHistory';
 import VirtualAccount from './app/screens/VirtualAccount';
+import ReceiptScreen from './app/screens/ReceiptScreen';
 
 const Stack = createNativeStackNavigator();
 const InsideStack = createNativeStackNavigator();
@@ -134,6 +135,7 @@ export default function App() {
         <Stack.Screen name="GroupDashboard" component={GroupDashboard} />
         <Stack.Screen name="TransactionHistory" component={TransactionHistory} />
         <Stack.Screen name="VirtualAccount" component={VirtualAccount} />
+        <Stack.Screen name="ReceiptScreen" component={ReceiptScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

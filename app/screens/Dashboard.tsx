@@ -223,14 +223,13 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
       
 
         <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('TransactionHistory')}>
-          <Ionicons name="wallet" size={24} color="white" />
+          <Ionicons name="sync-outline" size={24} color="white" />
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.footerButton} onPress={toggleOptionsMenu}>
           <Ionicons name="grid" size={24} color="white" />
         </TouchableOpacity>
       </View>
-
       {showQuickActions && (
         <View style={styles.quickActionsOverlay}>
           <Animated.View style={[styles.animatedButton, { transform: [{ scale: depositAnim }] }]}>

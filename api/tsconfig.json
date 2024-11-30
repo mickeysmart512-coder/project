@@ -8,12 +8,6 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist"
   },
-  "include": [
-    "api/**/*.ts",
-    "api/**/*.js"
-  ],
-  "exclude": [
-    "node_modules"
-  ],
-  "extends": "expo/tsconfig.base"
+  "include": ["api/**/*.ts", "api/**/*.js"],
+  "exclude": ["node_modules"]
 }

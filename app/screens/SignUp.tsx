@@ -1,11 +1,171 @@
-// SignUp.js
+
+
+// import React, { useState } from 'react';
+// import {
+//   View,
+//   TextInput,
+//   StyleSheet,
+//   Text,
+//   ActivityIndicator,
+//   TouchableOpacity,
+//   Alert,
+// } from 'react-native';
+// import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
+// import { createUserWithEmailAndPassword } from 'firebase/auth';
+// import { doc, setDoc } from 'firebase/firestore';
+// import axios from 'axios';
+
+// const SignUp = ({ navigation }: { navigation: any }) => {
+//   const [email, setEmail] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [username, setUsername] = useState('');
+//   const [firstName, setFirstName] = useState('');
+//   const [lastName, setLastName] = useState('');
+//   const [mobileNumber, setMobileNumber] = useState('');
+//   const [loading, setLoading] = useState(false);
+
+//   const auth = FIREBASE_AUTH;
+//   const db = FIREBASE_DB;
+
+//   const validateInputs = () => {
+//     if (!username || !firstName || !lastName || !email || !password || !mobileNumber) {
+//       alert('Please fill out all fields.');
+//       return false;
+//     }
+//     return true;
+//   };
+
+//   const generateMonnifyToken = async () => {
+//     try {
+//       const apiKey = 'MK_TEST_J0BV4E7B70';
+//       const secretKey = 'M32JU59N2QQV6E1L8HH33RUMSJU2DXG0';
+
+//       const authHeaders = {
+//         Authorization: 'Basic ' + btoa(`${apiKey}:${secretKey}`),
+//         'Content-Type': 'application/json',
+//       };
+
+//       const tokenResponse = await axios.post(
+//         'https://sandbox.monnify.com/api/v1/auth/login',
+//         {},
+//         { headers: authHeaders }
+//       );
+//       return tokenResponse.data.responseBody.accessToken;
+//     } catch (error) {
+//       console.error('Error generating Monnify token:', error);
+//       throw new Error('Failed to generate Monnify token');
+//     }
+//   };
+
+//   const createMonnifyAccount = async (userId: string, token: string) => {
+//     try {
+//       const monnifyUrl = 'https://sandbox.monnify.com/api/v2/bank-transfer/reserved-accounts';
+//       const monnifyData = {
+//         accountReference: `USER_${userId}`, // Unique reference for the account
+//         accountName: `${firstName} ${lastName}`,
+//         currencyCode: 'NGN',
+//         contractCode: '1737544075', // Your Monnify contract code
+//         customerEmail: email,
+//         customerName: `${firstName} ${lastName}`,
+//         getAllAvailableBanks: false,
+//         preferredBanks: ['035', '232'], // Bank codes for Wema Bank and Sterling Bank
+//       };
+
+//       const headers = {
+//         Authorization: `Bearer ${token}`,
+//         'Content-Type': 'application/json',
+//       };
+
+//       const monnifyResponse = await axios.post(monnifyUrl, monnifyData, { headers });
+//       return monnifyResponse.data.responseBody.accounts; // Return the created accounts
+//     } catch (error) {
+//       console.error('Error creating Monnify virtual account:', error);
+//       throw new Error('Failed to create Monnify virtual account');
+//     }
+//   };
+
+
+
+//   const signUp = async () => {
+//     if (!validateInputs()) return;
+  
+//     setLoading(true);
+//     try {
+//       // Step 1: Create user in Firebase Auth
+//       const response = await createUserWithEmailAndPassword(auth, email, password);
+//       const userId = response.user.uid;
+  
+//       // Step 2: Generate Monnify token
+//       const monnifyToken = await generateMonnifyToken();
+  
+//       // Step 3: Create Monnify account for the user
+//       const accounts = await createMonnifyAccount(userId, monnifyToken);
+//       const accountInfo = accounts.map(acc => ({
+//         bankName: acc.bankName,
+//         accountNumber: acc.accountNumber,
+//         accountName: acc.accountName, // Include account name for clarity
+//         reference: `USER_${userId}`, // Save the unique reference here
+//       }));
+//       console.log('Monnify virtual accounts created:', accountInfo);
+  
+//       // Step 4: Save user details and Monnify account info to Firestore
+//       const userDoc = {
+//         username,
+//         firstname: firstName,
+//         lastname: lastName,
+//         email,
+//         mobile: parseInt(mobileNumber),
+//         monnifyAccounts: accountInfo, // Array with reference included
+//       };
+  
+//       console.log('User data to be saved to Firestore:', userDoc);
+  
+//       await setDoc(doc(db, 'users', userId), userDoc);
+  
+//       console.log('User registered and Monnify account saved to Firestore.');
+//       Alert.alert(
+//         'Account created successfully',
+//         `Your account has been created. You can now deposit funds using your virtual account.`
+//       );
+//       navigation.navigate('CreateLoginPin');
+//     } catch (error: any) {
+//       console.log('Sign up error:', error);
+//       alert('Sign up failed: ' + error.message);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet, Button, Text, ActivityIndicator, TouchableOpacity, } from 'react-native';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, collection } from 'firebase/firestore';
+import axios from 'axios';
 
-const SignUp = ({ navigation }:{ navigation: any }) => {
+const SignUp = ({ navigation }: { navigation: any }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
@@ -13,49 +173,78 @@ const SignUp = ({ navigation }:{ navigation: any }) => {
   const [lastName, setLastName] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [loading, setLoading] = useState(false);
-  const [usernameExists, setUsernameExists] = useState(false);
+
   const auth = FIREBASE_AUTH;
   const db = FIREBASE_DB;
-
-  const validateEmail = (email) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(String(email).toLowerCase());
-  };
 
   const validateInputs = () => {
     if (!username || !firstName || !lastName || !email || !password || !mobileNumber) {
       alert('Please fill out all fields.');
       return false;
     }
-    if (!validateEmail(email)) {
-      alert('Please enter a valid email address.');
-      return false;
-    }
-    if (isNaN(mobileNumber)) {
-      alert('Please enter a valid mobile number.');
-      return false;
-    }
-    if (usernameExists) {
-      alert('Username already exists.');
-      return false;
-    }
     return true;
   };
 
-  const checkUsernameExists = async (username) => {
-    const usersRef = collection(db, 'users');
-    const q = query(usersRef, where('username', '==', username));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
+  const generateMonnifyToken = async () => {
+    try {
+      const apiKey = 'MK_TEST_J0BV4E7B70';
+      const secretKey = 'M32JU59N2QQV6E1L8HH33RUMSJU2DXG0';
+
+      const authHeaders = {
+        Authorization: 'Basic ' + btoa(`${apiKey}:${secretKey}`),
+        'Content-Type': 'application/json',
+      };
+
+      const tokenResponse = await axios.post(
+        'https://sandbox.monnify.com/api/v1/auth/login',
+        {},
+        { headers: authHeaders }
+      );
+      return tokenResponse.data.responseBody.accessToken;
+    } catch (error) {
+      console.error('Error generating Monnify token:', error);
+      throw new Error('Failed to generate Monnify token');
+    }
   };
 
-  const handleUsernameChange = async (text) => {
-    setUsername(text);
-    if (text.length > 0) {
-      const exists = await checkUsernameExists(text);
-      setUsernameExists(exists);
-    } else {
-      setUsernameExists(false);
+  const createMonnifyAccount = async (userId: string, token: string) => {
+    try {
+      const monnifyUrl = 'https://sandbox.monnify.com/api/v2/bank-transfer/reserved-accounts';
+      const monnifyData = {
+        accountReference: `USER_${userId}`,
+        accountName: `${firstName} ${lastName}`,
+        currencyCode: 'NGN',
+        contractCode: '1737544075',
+        customerEmail: email,
+        customerName: `${firstName} ${lastName}`,
+        getAllAvailableBanks: false,
+        preferredBanks: ['035', '232'],
+      };
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      const monnifyResponse = await axios.post(monnifyUrl, monnifyData, { headers });
+      return monnifyResponse.data.responseBody.accounts;
+    } catch (error) {
+      console.error('Error creating Monnify virtual account:', error);
+      throw new Error('Failed to create Monnify virtual account');
+    }
+  };
+
+  const createTransactionCollection = async (userId: string) => {
+    try {
+      const transactionRef = doc(collection(db, 'transactions'), userId);
+      const transactionData = {
+        transactions: [],
+      };
+      await setDoc(transactionRef, transactionData);
+      console.log('Transaction collection initialized for user:', userId);
+    } catch (error) {
+      console.error('Error creating transaction collection:', error);
+      throw new Error('Failed to create transaction collection');
     }
   };
 
@@ -67,20 +256,34 @@ const SignUp = ({ navigation }:{ navigation: any }) => {
       const response = await createUserWithEmailAndPassword(auth, email, password);
       const userId = response.user.uid;
 
-      // Save user details to Firestore
-      await setDoc(doc(db, 'users', userId), {
+      const monnifyToken = await generateMonnifyToken();
+      const accounts = await createMonnifyAccount(userId, monnifyToken);
+      const accountInfo = accounts.map((acc) => ({
+        bankName: acc.bankName,
+        accountNumber: acc.accountNumber,
+        accountName: acc.accountName,
+        reference: `USER_${userId}`,
+      }));
+
+      const userDoc = {
         username,
         firstname: firstName,
         lastname: lastName,
         email,
         mobile: parseInt(mobileNumber),
-      });
+        monnifyAccounts: accountInfo,
+      };
 
-      console.log('User registered and details saved to Firestore');
-      alert('Check your email');
-      navigation.navigate('CreateLoginPin'); 
-    } catch (error) {
-      console.log(error);
+      await setDoc(doc(db, 'users', userId), userDoc);
+      await createTransactionCollection(userId);
+
+      Alert.alert(
+        'Account created successfully',
+        `Your account has been created. You can now deposit funds using your virtual account.`
+      );
+      navigation.navigate('CreateLoginPin');
+    } catch (error: any) {
+      console.log('Sign up error:', error);
       alert('Sign up failed: ' + error.message);
     } finally {
       setLoading(false);
@@ -89,62 +292,49 @@ const SignUp = ({ navigation }:{ navigation: any }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.topContainer}>
-        <View style={[styles.circle, styles.blueCircle]} />
-        <View style={[styles.circle, styles.purpleCircle]} />
-      </View>
-      <View style={styles.bottomContainer}>
-        <Text style={styles.title}>Sign Up</Text>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Username"
-            onChangeText={handleUsernameChange}
-            value={username}
-          />
-          {usernameExists && <Text style={styles.errorText}>Username already exists</Text>}
-          <TextInput
-            style={styles.input}
-            placeholder="First Name"
-            onChangeText={(text) => setFirstName(text)}
-            value={firstName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Last Name"
-            onChangeText={(text) => setLastName(text)}
-            value={lastName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            autoCapitalize="none"
-            onChangeText={(text) => setEmail(text)}
-            value={email}
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Mobile Number"
-            onChangeText={(text) => setMobileNumber(text)}
-            value={mobileNumber}
-            keyboardType="phone-pad"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            autoCapitalize="none"
-            onChangeText={(text) => setPassword(text)}
-            value={password}
-            secureTextEntry={true}
-          />
-        </View>
-        <TouchableOpacity style={styles.button}>
-          <Button title="Create Account" onPress={signUp} disabled={loading} />
-          {loading && <ActivityIndicator size="large" color="#0000ff" />}
-        </TouchableOpacity>
-      </View>
+      <TextInput
+        placeholder="Username"
+        value={username}
+        onChangeText={setUsername}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="First Name"
+        value={firstName}
+        onChangeText={setFirstName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Last Name"
+        value={lastName}
+        onChangeText={setLastName}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        keyboardType="email-address"
+      />
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        style={styles.input}
+        secureTextEntry
+      />
+      <TextInput
+        placeholder="Mobile Number"
+        value={mobileNumber}
+        onChangeText={setMobileNumber}
+        style={styles.input}
+        keyboardType="numeric"
+      />
 
+      <TouchableOpacity onPress={signUp} style={styles.button}>
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Sign Up</Text>}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -152,66 +342,25 @@ const SignUp = ({ navigation }:{ navigation: any }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginHorizontal: 20,
+    padding: 20,
     justifyContent: 'center',
-  },
-  topContainer: {
-    flex: 1,
-    position: 'relative',
-    marginTop: -50,
-  },
-  bottomContainer: {
-    flex: 2,
-    justifyContent: 'center',
-  },
-  circle: {
-    position: 'absolute',
-    borderRadius: 100,
-  },
-  blueCircle: {
-    backgroundColor: '#3B82F6',
-    width: 150,
-    height: 150,
-    top: 60,
-    left: 250,
-  },
-  purpleCircle: {
-    backgroundColor: '#4B0082',
-    width: 180,
-    height: 200,
-    top: -50,
-    left: 200,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#4B0082',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    marginBottom: 20,
   },
   input: {
     height: 50,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 8,
+    marginBottom: 15,
     paddingHorizontal: 10,
-    marginBottom: 10,
-    fontSize: 16,
   },
   button: {
-    width: '100%',
+    backgroundColor: '#007bff',
     padding: 15,
-    backgroundColor: '#3B82F6',
-    borderRadius: 5,
     alignItems: 'center',
+    borderRadius: 5,
   },
-  errorText: {
-    color: 'red',
-    marginBottom: 10,
-    textAlign: 'center',
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
   },
 });
 
