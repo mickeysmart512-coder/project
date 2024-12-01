@@ -4,30 +4,44 @@ import { StyleSheet, Text, View } from 'react-native';
 const ReceiptScreen = ({ route }) => {
   const { transaction } = route.params;
 
+  if (!transaction) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>No transaction details found.</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Transaction Receipt</Text>
       <View style={styles.receipt}>
-        <Text style={styles.label}>Type:</Text>
-        <Text style={styles.value}>{transaction.type}</Text>
-
-        <Text style={styles.label}>Amount:</Text>
-        <Text style={styles.value}>${transaction.amount}</Text>
-
-        <Text style={styles.label}>Date:</Text>
-        <Text style={styles.value}>{transaction.date}</Text>
-
-        <Text style={styles.label}>Transaction ID:</Text>
-        <Text style={styles.value}>{transaction.transactionId}</Text>
-
-        <Text style={styles.label}>Status:</Text>
-        <Text style={styles.value}>{transaction.status}</Text>
-
-        <Text style={styles.label}>Account Number:</Text>
-        <Text style={styles.value}>{transaction.accountNumber}</Text>
-
-        <Text style={styles.label}>Bank Name:</Text>
-        <Text style={styles.value}>{transaction.bankName}</Text>
+        <View style={styles.row}>
+          <Text style={styles.label}>Amount:</Text>
+          <Text style={styles.value}>N{transaction.amount.toFixed(2)}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Date:</Text>
+          <Text style={styles.value}>
+            {transaction.createdAt
+              ? new Date(transaction.createdAt.seconds * 1000).toLocaleString()
+              : 'N/A'}
+          </Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Description:</Text>
+          <Text style={styles.value}>{transaction.description}</Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Status:</Text>
+          <Text style={[styles.value, styles[transaction.status]]}>
+            {transaction.status}
+          </Text>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.label}>Transaction Type:</Text>
+          <Text style={styles.value}>{transaction.transactionType}</Text>
+        </View>
       </View>
     </View>
   );
@@ -45,6 +59,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 16,
+    textAlign: 'center',
   },
   receipt: {
     backgroundColor: '#fff',
@@ -56,14 +71,35 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 4,
+    color: '#333',
   },
   value: {
     fontSize: 16,
-    marginBottom: 12,
-    color: '#333',
+    color: '#555',
+    flex: 1,
+    textAlign: 'right',
+  },
+  success: {
+    color: 'green',
+  },
+  failed: {
+    color: 'red',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
   },
 });

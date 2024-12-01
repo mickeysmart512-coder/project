@@ -15,10 +15,10 @@ interface RouterProps {
 const Dashboard = ({ route, navigation }: RouterProps) => {
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  const [userBalance, setUserBalance] = useState<string | null>(null); 
+  const [userBalance, setUserBalance] = useState<string | null>(null);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
-  const [showPinEntry, setShowPinEntry] = useState(false); 
+  const [showPinEntry, setShowPinEntry] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
   const user = route.params?.user || {};
@@ -35,14 +35,14 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
         const userDoc = await getDoc(doc(FIREBASE_DB, 'users', userId));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUserName(`${userData.firstName} ${userData.lastName}`);
-          setUserBalance(userData.wallet ? userData.wallet.toFixed(2) : '0.00');
+          setUserName(`${userData.firstname} ${userData.lastname}`);          
+          setUserBalance(userData.balance ? parseFloat(userData.balance).toFixed(2) : '0.00');
         } else {
           console.log('No such document!');
         }
       }
     } catch (error) {
-      console.log('Error fetching user data:', error);
+      console.error('Error fetching user data:', error);
     }
   };
 
@@ -54,12 +54,12 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
       }
     };
     checkPin();
-    fetchUserData();
-  }, [route.params?.updatedBalance]);
+    fetchUserData(); // Fetch balance and user info on mount
+  }, [route.params?.updatedBalance]); // Add `updatedBalance` to dependency array to trigger re-fetch
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchUserData();
+    await fetchUserData(); // Re-fetch user data on pull-to-refresh
     setRefreshing(false);
   }, []);
 
@@ -72,7 +72,7 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
         routes: [{ name: 'LandingPage' }],
       });
     } catch (error) {
-      console.log(error);
+      console.error('Sign-out error:', error);
       alert('Failed to sign out: ' + error.message);
     }
   };
@@ -135,7 +135,7 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
             </TouchableOpacity>
             <Text style={styles.balanceTitle}>Available Balance</Text>
             {userBalance === null ? (
-              <Loader /> 
+              <Loader />
             ) : (
               <Text style={styles.balanceAmount}>₦{userBalance}</Text>
             )}
