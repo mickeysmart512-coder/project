@@ -26,8 +26,12 @@ const AccountScreen = ({ navigation }: Props) => {
     try {
       const userDoc = await getDoc(doc(FIREBASE_DB, 'users', uid));
       if (userDoc.exists()) {
-        setUserData(userDoc.data());
-        setIsLockAccountEnabled(userDoc.data().status === 'locked');
+        const data = userDoc.data();
+        setUserData({
+          ...data,
+          wallet: data.wallet || 0 // Default to 0 if wallet doesn't exist
+        });
+        setIsLockAccountEnabled(data.status === 'locked');
       }
     } catch (error) {
       console.error('Error fetching user data: ', error);
@@ -121,7 +125,8 @@ const AccountScreen = ({ navigation }: Props) => {
       <View style={styles.balanceCard}>
         <View style={styles.walletContainer}>
           <Text style={styles.balanceTitle}>Available Balance</Text>
-          <Text style={styles.balanceAmount}>₦{userData.wallet.toFixed(2)}</Text>
+          <Text style={styles.balanceAmount}> ₦{(userData.wallet || 0).toFixed(2)}
+</Text>          
           <Text style={styles.accountNumber}>**** **** **** 8635</Text>
           <Text style={styles.accountHolder}>Username: {userData.username}</Text>
         </View>
@@ -144,7 +149,7 @@ const AccountScreen = ({ navigation }: Props) => {
 
       <View style={styles.settingsContainer}>
         <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('CreatePaymentPin')}>
-          <Text style={styles.settingText}>Change Payment Pin</Text>
+          <Text style={styles.settingText}>Create Payment Pin</Text>
           <Ionicons name="chevron-forward" size={24} color="#4B0082" />
         </TouchableOpacity>
 
