@@ -247,7 +247,7 @@ const TransactionHistory = () => {
           >
             <Text style={styles.description}>{item.description}</Text>
             <Text style={styles.amount}>
-              {item.transactionType === 'deposit' ? '+' : '-'}${item.amount.toFixed(2)}
+              {item.transactionType === 'deposit' ? '+' : '-'}N{item.amount.toFixed(2)}
             </Text>
             <Text style={styles.status}>
               Status: <Text style={styles[item.status]}>{item.status}</Text>

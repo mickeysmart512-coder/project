@@ -300,7 +300,7 @@ left: -20,
   },
   balanceCard: {
     backgroundColor: '#4B0082',
-    borderRadius: 10,
+    borderRadius: 15,
     width: 300,
     padding: 25,
     marginBottom: 20,

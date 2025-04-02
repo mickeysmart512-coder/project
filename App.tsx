@@ -64,7 +64,7 @@ export default function App() {
       const savedUser = await AsyncStorage.getItem('user');
       if (savedUser) {
         setUser(JSON.parse(savedUser));
-        setInitialRoute('LoginPin'); // Start with LoginPin if user is already logged in
+        setInitialRoute('LoginPin'); 
       }
     };
 
