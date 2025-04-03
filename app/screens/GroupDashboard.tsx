@@ -1089,10 +1089,12 @@
 
 // export default GroupDashboard;
 
+
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert, StatusBar, TextInput } from 'react-native';
 import { FontAwesome, Ionicons, MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, arrayRemove, deleteDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, arrayRemove, deleteDoc, writeBatch} from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import moment from 'moment';
 
@@ -1146,100 +1148,133 @@ const GroupDashboard = ({ route, navigation }) => {
   const db = getFirestore();
   const auth = getAuth();
 
-  // Set current user ID
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUserId(user.uid);
-      } else {
-        console.error('No user is signed in');
-      }
-    });
+// Set current user ID
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setCurrentUserId(user.uid);
+    } else {
+      console.error('No user is signed in');
+    }
+  });
 
-    return () => unsubscribe();
-  }, [auth]);
+  return () => unsubscribe();
+}, [auth]);
 
-  // Fetch group details and users
-  useEffect(() => {
-    const fetchGroupDetails = async () => {
-      if (!groupId) {
-        console.error('Group ID is not provided');
+// Fetch group details and users
+useEffect(() => {
+  const fetchGroupDetails = async () => {
+    if (!groupId) {
+      console.error('Group ID is not provided');
+      return;
+    }
+    
+    try {
+      // 1. Fetch group data
+      const groupDoc = await getDoc(doc(db, 'groups', groupId));
+      if (!groupDoc.exists()) {
+        console.error('Group data not found');
         return;
       }
-      try {
-        const groupDoc = await getDoc(doc(db, 'groups', groupId));
-        if (groupDoc.exists()) {
-          const groupData = groupDoc.data();
-          setGroup({
-            ...groupData,
-            // Ensure these fields exist
-            size: groupData.size || 0,
-            startDate: groupData.startDate || '',
-            endDate: groupData.endDate || '',
-            registrationFeeAmount: groupData.registrationFeeAmount || 0,
-            contributionAmount: groupData.contributionAmount || 0
-          });
 
-          // Calculate contribution days and payout day
-          const groupCreationDay = moment(groupData.createdAt.toDate());
-          let contributionDays = [];
-          let payoutDay = '';
+      const groupData = groupDoc.data();
+      setGroup({
+        ...groupData,
+        size: groupData.size || 0,
+        startDate: groupData.startDate || '',
+        endDate: groupData.endDate || '',
+        registrationFeeAmount: groupData.registrationFeeAmount || 0,
+        contributionAmount: groupData.contributionAmount || 0
+      });
 
-          switch (groupCreationDay.format('dddd')) {
-            case 'Monday':
-              contributionDays = ['Wednesday', 'Thursday'];
-              payoutDay = 'Sunday';
-              break;
-            case 'Tuesday':
-              contributionDays = ['Thursday', 'Friday'];
-              payoutDay = 'Monday';
-              break;
-            case 'Wednesday':
-              contributionDays = ['Friday', 'Saturday'];
-              payoutDay = 'Tuesday';
-              break;
-            default:
-              contributionDays = ['Wednesday', 'Thursday'];
-              payoutDay = 'Sunday';
-          }
+      // 2. Calculate contribution schedule
+      const groupCreationDay = moment(groupData.createdAt.toDate());
+      let contributionDays = [];
+      let payoutDay = '';
 
-          setContributionDays(contributionDays);
-          setPayoutDay(payoutDay);
-
-          // Calculate the next due date for contributions
-          const today = moment();
-          let nextDue = today;
-
-          if (contributionDays.includes(today.format('dddd'))) {
-            nextDue = today;
-          } else {
-            nextDue = moment().day(contributionDays[0]);
-          }
-
-          setNextDueDate(nextDue.format('DD/MM/YYYY'));
-
-          // Fetch users
-          const usersQuery = query(collection(db, 'users'), where('groupId', '==', groupId));
-          const querySnapshot = await getDocs(usersQuery);
-          const usersList = querySnapshot.docs.map(doc => doc.data());
-          setUsers(usersList);
-
-          // Check if current user has paid registration fee and contribution
-          const currentUser = usersList.find(user => user.id === currentUserId);
-          if (currentUser) {
-            setHasPaidRegistrationFee(currentUser.hasPaidRegistrationFee);
-            setHasPaidContribution(currentUser.hasPaidContribution);
-          }
-        } else {
-          console.error('Group data not found');
-        }
-      } catch (error) {
-        console.error('Error fetching group details or users:', error);
+      switch (groupCreationDay.format('dddd')) {
+        case 'Monday':
+          contributionDays = ['Wednesday', 'Thursday'];
+          payoutDay = 'Sunday';
+          break;
+        case 'Tuesday':
+          contributionDays = ['Thursday', 'Friday'];
+          payoutDay = 'Monday';
+          break;
+        case 'Wednesday':
+          contributionDays = ['Friday', 'Saturday'];
+          payoutDay = 'Tuesday';
+          break;
+        default:
+          contributionDays = ['Wednesday', 'Thursday'];
+          payoutDay = 'Sunday';
       }
-    };
 
-    fetchGroupDetails();
-  }, [db, groupId, currentUserId]);
+      setContributionDays(contributionDays);
+      setPayoutDay(payoutDay);
+
+      // Calculate next due date
+      const today = moment();
+      let nextDue = contributionDays.includes(today.format('dddd')) 
+        ? today 
+        : moment().day(contributionDays[0]);
+      setNextDueDate(nextDue.format('DD/MM/YYYY'));
+
+      // 3. Fetch users in the group
+      const usersQuery = query(collection(db, 'users'), where('groupId', '==', groupId));
+      const usersSnapshot = await getDocs(usersQuery);
+      const usersList = usersSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(usersList);
+
+      // 4. Check payment status (both in transactions and user document)
+      if (currentUserId) {
+        // Check transactions first (most reliable)
+        const txQuery = query(
+          collection(db, 'transactions'),
+          where('userId', '==', currentUserId),
+          where('groupId', '==', groupId),
+          where('status', '==', 'success')
+        );
+        const txSnapshot = await getDocs(txQuery);
+        
+        let paidRegistration = false;
+        let paidContribution = false;
+        
+        txSnapshot.forEach(doc => {
+          const tx = doc.data();
+          if (tx.transactionType === 'registration_fee') paidRegistration = true;
+          if (tx.transactionType === 'contribution') paidContribution = true;
+        });
+
+        // Fallback to user document if no transactions found
+        const currentUser = usersList.find(user => user.id === currentUserId);
+        if (currentUser) {
+          paidRegistration = paidRegistration || currentUser.hasPaidRegistrationFee || false;
+          paidContribution = paidContribution || currentUser.hasPaidContribution || false;
+          
+          // Update user document if needed (for backward compatibility)
+          if (currentUser.hasPaidRegistrationFee !== paidRegistration || 
+              currentUser.hasPaidContribution !== paidContribution) {
+            await updateDoc(doc(db, 'users', currentUserId), {
+              hasPaidRegistrationFee: paidRegistration,
+              hasPaidContribution: paidContribution
+            });
+          }
+        }
+
+        setHasPaidRegistrationFee(paidRegistration);
+        setHasPaidContribution(paidContribution);
+      }
+    } catch (error) {
+      console.error('Error fetching group details:', error);
+    }
+  };
+
+  fetchGroupDetails();
+}, [db, groupId, currentUserId]);
 
 const initiatePayment = (type) => {
   setPaymentType(type);
@@ -1261,174 +1296,199 @@ const initiatePayment = (type) => {
   setShowPaymentModal(true);
 };
 
-  // Verify payment PIN
-  const verifyPaymentPin = async () => {
-    try {
-      // Validate PIN length first
-      if (paymentPin.length !== 4) {
-        Alert.alert('Invalid PIN', 'PIN must be exactly 4 digits');
-        return;
-      }
-
-      const userDoc = await getDoc(doc(db, 'users', currentUserId));
-      
-      if (!userDoc.exists()) {
-        Alert.alert('Error', 'User data not found');
-        return;
-      }
-
-      const userData = userDoc.data();
-      const storedPin = userData.paymentPin;
-
-      // Check if user has a PIN set
-      if (!storedPin) {
-        Alert.alert(
-          'No PIN Set', 
-          'You need to set a payment PIN first.',
-          [
-            { 
-              text: 'Set PIN', 
-              onPress: () => {
-                setShowPinModal(false);
-                navigation.navigate('CreatePaymentPin');
-              }
-            },
-            { text: 'Cancel' }
-          ]
-        );
-        return;
-      }
-
-      // Verify the PIN
-      if (paymentPin === storedPin) {
-        await processPayment();
-      } else {
-        Alert.alert(
-          'Incorrect PIN', 
-          'The PIN you entered is incorrect. Please try again.',
-          [{ text: 'OK', onPress: () => setPaymentPin('') }]
-        );
-      }
-    } catch (error) {
-      console.error('Error verifying PIN:', error);
-      Alert.alert(
-        'Error', 
-        'Failed to verify PIN. Please try again.',
-        [{ text: 'OK', onPress: () => setPaymentPin('') }]
-      );
-    }
-  };
-
-  // Process payment after PIN verification
-  const processPayment = async () => {
-    try {
-      setShowPinModal(false);
-      
-      const updates = {};
-      if (paymentType === 'registration') {
-        updates.hasPaidRegistrationFee = true;
-      } else {
-        updates.hasPaidContribution = true;
-      }
-      
-      await updateDoc(doc(db, 'users', currentUserId), updates);
-      
-      // Update local state
-      if (paymentType === 'registration') {
-        setHasPaidRegistrationFee(true);
-      } else {
-        setHasPaidContribution(true);
-      }
-      
-      // Show success message
-      Alert.alert(
-        'Payment Successful', 
-        `Your ${paymentType === 'registration' ? 'registration fee' : 'contribution'} of ₦${paymentAmount.toFixed(2)} was processed successfully!`,
-        [{ text: 'OK', onPress: () => setPaymentPin('') }]
-      );
-    } catch (error) {
-      console.error('Payment processing error:', error);
-      Alert.alert(
-        'Payment Failed', 
-        'There was an error processing your payment. Please try again.',
-        [{ text: 'OK' }]
-      );
-    } finally {
-      setPaymentPin(''); // Always clear the PIN after processing
-    }
-  };
-
-  // Handle Leave Group
-  const handleLeaveGroup = async () => {
-    if (!currentUserId) {
-      console.error('Current user ID is not defined');
+// Verify payment PIN
+const verifyPaymentPin = async () => {
+  try {
+    // Validate PIN length first
+    if (paymentPin.length !== 4) {
+      Alert.alert('Invalid PIN', 'PIN must be exactly 4 digits');
       return;
     }
 
-    Alert.alert(
-      'Leave Group',
-      'Are you sure you want to leave this group?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Leave',
-          onPress: async () => {
-            try {
-              const groupRef = doc(db, 'groups', groupId);
-              const groupDoc = await getDoc(groupRef);
+    const userDoc = await getDoc(doc(db, 'users', currentUserId));
+    
+    if (!userDoc.exists()) {
+      Alert.alert('Error', 'User data not found');
+      return;
+    }
 
-              if (!groupDoc.exists()) {
-                console.error('Group does not exist');
-                return;
-              }
+    const userData = userDoc.data();
+    const storedPin = userData.paymentPin;
 
-              const groupData = groupDoc.data();
-              if (!groupData.members || !groupData.members.includes(currentUserId)) {
-                console.error('User is not a member of the group');
-                return;
-              }
-
-              await updateDoc(groupRef, {
-                members: arrayRemove(currentUserId),
-              });
-
-              const userRef = doc(db, 'users', currentUserId);
-              await updateDoc(userRef, {
-                groupId: null,
-              });
-
-              if (groupData.members.length === 1) {
-                await deleteDoc(groupRef);
-              }
-
-              navigation.navigate('Groups');
-            } catch (error) {
-              console.error('Error leaving group:', error);
+    // Check if user has a PIN set
+    if (!storedPin) {
+      Alert.alert(
+        'No PIN Set', 
+        'You need to set a payment PIN first.',
+        [
+          { 
+            text: 'Set PIN', 
+            onPress: () => {
+              setShowPinModal(false);
+              navigation.navigate('CreatePaymentPin');
             }
           },
-          style: 'destructive',
-        },
-      ],
-      { cancelable: true }
-    );
-  };
+          { text: 'Cancel' }
+        ]
+      );
+      return;
+    }
 
-  // Handle Close Announcement
-  const handleCloseAnnouncement = () => {
-    setShowAnnouncement(false);
-  };
-
-  if (!group) {
-    return (
-      <View style={styles.loadingContainer}>
-        <MaterialIcons name="group" size={50} color={COLORS.primary} />
-        <Text style={styles.loadingText}>Loading Group Data...</Text>
-      </View>
+    // Verify the PIN
+    if (paymentPin === storedPin) {
+      await processPayment();
+    } else {
+      Alert.alert(
+        'Incorrect PIN', 
+        'The PIN you entered is incorrect. Please try again.',
+        [{ text: 'OK', onPress: () => setPaymentPin('') }]
+      );
+    }
+  } catch (error) {
+    console.error('Error verifying PIN:', error);
+    Alert.alert(
+      'Error', 
+      'Failed to verify PIN. Please try again.',
+      [{ text: 'OK', onPress: () => setPaymentPin('') }]
     );
   }
+};
+
+// Process payment after PIN verification
+const processPayment = async () => {
+  try {
+    setShowPinModal(false);
+    
+    // Create transaction record
+    const transactionData = {
+      userId: currentUserId,
+      groupId: groupId,
+      groupName: group.name,
+      amount: paymentAmount,
+      transactionType: paymentType === 'registration' ? 'registration_fee' : 'contribution',
+      description: paymentType === 'registration' 
+        ? `Registration fee for ${group.name}` 
+        : `Contribution payment for ${group.name}`,
+      status: 'success',
+      createdAt: new Date(),
+      paymentMethod: 'app_payment',
+      reference: `GRP-${Date.now()}`,
+    };
+
+    // Use batch write to ensure both updates succeed or fail together
+    const batch = writeBatch(db);
+    
+    // Update user payment status
+    const userRef = doc(db, 'users', currentUserId);
+    if (paymentType === 'registration') {
+      batch.update(userRef, { hasPaidRegistrationFee: true });
+    } else {
+      batch.update(userRef, { hasPaidContribution: true });
+    }
+    
+    // Add transaction record
+    const transactionsRef = collection(db, 'transactions');
+    const newTransactionRef = doc(transactionsRef);
+    batch.set(newTransactionRef, transactionData);
+    
+    await batch.commit();
+
+    // Update local state
+    if (paymentType === 'registration') {
+      setHasPaidRegistrationFee(true);
+    } else {
+      setHasPaidContribution(true);
+    }
+    
+    // Show success message
+    Alert.alert(
+      'Payment Successful', 
+      `Your ${paymentType === 'registration' ? 'registration fee' : 'contribution'} of ₦${paymentAmount.toFixed(2)} was processed successfully!`,
+      [{ text: 'OK', onPress: () => setPaymentPin('') }]
+    );
+  } catch (error) {
+    console.error('Payment processing error:', error);
+    Alert.alert(
+      'Payment Failed', 
+      'There was an error processing your payment. Please try again.',
+      [{ text: 'OK' }]
+    );
+  } finally {
+    setPaymentPin('');
+  }
+};
+
+// Handle Leave Group
+const handleLeaveGroup = async () => {
+  if (!currentUserId) {
+    console.error('Current user ID is not defined');
+    return;
+  }
+
+  Alert.alert(
+    'Leave Group',
+    'Are you sure you want to leave this group?',
+    [
+      {
+        text: 'Cancel',
+        style: 'cancel',
+      },
+      {
+        text: 'Leave',
+        onPress: async () => {
+          try {
+            const groupRef = doc(db, 'groups', groupId);
+            const groupDoc = await getDoc(groupRef);
+
+            if (!groupDoc.exists()) {
+              console.error('Group does not exist');
+              return;
+            }
+
+            const groupData = groupDoc.data();
+            if (!groupData.members || !groupData.members.includes(currentUserId)) {
+              console.error('User is not a member of the group');
+              return;
+            }
+
+            await updateDoc(groupRef, {
+              members: arrayRemove(currentUserId),
+            });
+
+            const userRef = doc(db, 'users', currentUserId);
+            await updateDoc(userRef, {
+              groupId: null,
+            });
+
+            if (groupData.members.length === 1) {
+              await deleteDoc(groupRef);
+            }
+
+            navigation.navigate('Groups');
+          } catch (error) {
+            console.error('Error leaving group:', error);
+          }
+        },
+        style: 'destructive',
+      },
+    ],
+    { cancelable: true }
+  );
+};
+
+// Handle Close Announcement
+const handleCloseAnnouncement = () => {
+  setShowAnnouncement(false);
+};
+
+if (!group) {
+  return (
+    <View style={styles.loadingContainer}>
+      <MaterialIcons name="group" size={50} color={COLORS.primary} />
+      <Text style={styles.loadingText}>Loading Group Data...</Text>
+    </View>
+  );
+}
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

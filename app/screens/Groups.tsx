@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert, Animated, Easing, Button } from 'react-native';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
@@ -146,11 +146,11 @@ const Groups = ({ navigation }: RouterProps) => {
                 </TouchableOpacity>
               )}
             </View>
-            <Text style={styles.groupDescription}>{group.description}</Text>
-            <Text style={styles.groupSize}>Size: {group.size}</Text>
-            <Text style={styles.groupCreator}>Creator: {group.creatorId}</Text>
+            <Text style={styles.groupDescription}>Group Description: {group.description}</Text>
+            <Text style={styles.groupSize}>Group Size: {group.size}</Text>
+            {/* <Text style={styles.groupCreator}>Creator: {group.creatorId}</Text> */}
             <TouchableOpacity onPress={() => navigation.navigate('GroupDetails', { groupId: group.id })}>
-           <Text>View Details</Text>
+           <Text style={styles.button}>View Group</Text>
             </TouchableOpacity>
           </View>
         ))}
@@ -169,9 +169,9 @@ const Groups = ({ navigation }: RouterProps) => {
         <TouchableOpacity style={styles.centerIconContainer} onPress={toggleQuickActions}>
           <Ionicons name="swap-horizontal" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.footerButton}>
-          <Ionicons name="wallet" size={24} color="white" />
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.footerButton} onPress={() => navigation.navigate('TransactionHistory')}>
+                  <Ionicons name="sync-outline" size={24} color="white" />
+                </TouchableOpacity>
         <TouchableOpacity style={styles.footerButton} onPress={toggleOptionsMenu}>
           <Ionicons name="grid" size={24} color="white" />
         </TouchableOpacity>
@@ -251,6 +251,12 @@ groupCreator: {
   fontSize: 14,
   color: '#6B7280',
 },
+button:{
+  marginTop: 15,
+  fontWeight: '700',
+  fontSize: 15,
+},
+
 footer: {
   flexDirection: 'row',
   justifyContent: 'space-around',

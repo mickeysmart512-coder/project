@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, RefreshControl, Animated, Easing, StyleSheet, Modal, TextInput, Button } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, RefreshControl, Animated, Easing, StyleSheet, Modal, TextInput } from 'react-native';
 import { MaterialIcons, FontAwesome5, Ionicons } from '@expo/vector-icons';
 import { NavigationProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FIREBASE_AUTH, FIREBASE_DB } from '../../FirebaseConfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import moment from 'moment';
 import Loader from './Loader';
 
 interface RouterProps {
@@ -13,6 +14,7 @@ interface RouterProps {
 }
 
 const Dashboard = ({ route, navigation }: RouterProps) => {
+  // State declarations
   const [refreshing, setRefreshing] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userBalance, setUserBalance] = useState<string | null>(null);
@@ -21,30 +23,161 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
   const [showPinEntry, setShowPinEntry] = useState(false);
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState('');
+  const [upcomingPayments, setUpcomingPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(true);
+
   const user = route.params?.user || {};
   const profilePic = user.picture || 'https://via.placeholder.com/150';
 
+  // Animation refs
   const depositAnim = useRef(new Animated.Value(0)).current;
   const withdrawAnim = useRef(new Animated.Value(0)).current;
   const optionsMenuAnim = useRef(new Animated.Value(0)).current;
 
-  const fetchUserData = async () => {
-    try {
-      const userId = FIREBASE_AUTH.currentUser?.uid;
-      if (userId) {
-        const userDoc = await getDoc(doc(FIREBASE_DB, 'users', userId));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUserName(`${userData.firstname} ${userData.lastname}`);          
-          setUserBalance(userData.balance ? parseFloat(userData.balance).toFixed(2) : '0.00');
-        } else {
-          console.log('No such document!');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
+// Fetch user data including all group payments
+const fetchUserData = async () => {
+  try {
+    const userId = FIREBASE_AUTH.currentUser?.uid;
+    if (!userId) return;
+
+    // Get user document
+    const userDoc = await getDoc(doc(FIREBASE_DB, 'users', userId));
+    if (!userDoc.exists()) {
+      console.log('User document not found');
+      return;
     }
+
+    const userData = userDoc.data();
+    setUserName(`${userData.firstname} ${userData.lastname}`);          
+    setUserBalance(userData.balance ? parseFloat(userData.balance).toFixed(2) : '0.00');
+
+    // Get all group IDs the user belongs to
+    const groupIds = [];
+    
+    // Check for multiple groups (new structure)
+    if (userData.groupIds && userData.groupIds.length > 0) {
+      groupIds.push(...userData.groupIds);
+    }
+    // Check for single group (backward compatibility)
+    else if (userData.groupId) {
+      groupIds.push(userData.groupId);
+    }
+    // Fallback to query groups collection (oldest structure)
+    else {
+      const groupsQuery = query(
+        collection(FIREBASE_DB, 'groups'),
+        where('members', 'array-contains', userId)
+      );
+      const groupsSnapshot = await getDocs(groupsQuery);
+      groupsSnapshot.forEach(doc => {
+        groupIds.push(doc.id);
+      });
+    }
+
+    // If no groups found
+    if (groupIds.length === 0) {
+      setUpcomingPayments([]);
+      return;
+    }
+
+    // Fetch payment data for all groups
+    const payments = [];
+    for (const groupId of groupIds) {
+      try {
+        const payment = await getGroupPaymentData(groupId);
+        if (payment) {
+          payments.push(payment);
+        }
+      } catch (error) {
+        console.error(`Error processing group ${groupId}:`, error);
+      }
+    }
+
+    setUpcomingPayments(payments);
+  } catch (error) {
+    console.error('Error fetching user data:', error);
+    setUpcomingPayments([]);
+  } finally {
+    setLoadingPayments(false);
+  }
+};
+
+// Helper function to get payment data for a single group
+const getGroupPaymentData = async (groupId: string) => {
+  const groupDoc = await getDoc(doc(FIREBASE_DB, 'groups', groupId));
+  if (!groupDoc.exists()) return null;
+
+  const groupData = groupDoc.data();
+  
+  // Skip if no contribution amount set
+  if (!groupData.contributionAmount || groupData.contributionAmount <= 0) {
+    return null;
+  }
+
+  // Calculate next payment date (same logic as GroupDashboard)
+  const groupCreationDay = moment(groupData.createdAt.toDate());
+  let contributionDays = [];
+  
+  switch (groupCreationDay.format('dddd')) {
+    case 'Monday': contributionDays = ['Wednesday', 'Thursday']; break;
+    case 'Tuesday': contributionDays = ['Thursday', 'Friday']; break;
+    case 'Wednesday': contributionDays = ['Friday', 'Saturday']; break;
+    default: contributionDays = ['Wednesday', 'Thursday'];
+  }
+
+  const today = moment();
+  const nextDue = contributionDays.includes(today.format('dddd')) 
+    ? today 
+    : moment().day(contributionDays[0]);
+
+  return {
+    groupId,
+    groupName: groupData.name,
+    nextPaymentDate: nextDue.format('DD/MM'),
+    amount: groupData.contributionAmount
   };
+};
+
+// Render the Schedule Payments section (updated to use groupId as key)
+const renderSchedulePayments = () => {
+  if (loadingPayments) {
+    return (
+      <View style={styles.paymentItem}>
+        <Loader />
+      </View>
+    );
+  }
+
+  if (upcomingPayments.length === 0) {
+    return (
+      <View style={styles.noPayments}>
+        <Text style={styles.noPaymentsText}>No upcoming payments</Text>
+      </View>
+    );
+  }
+
+  return upcomingPayments.map((payment) => (
+    <TouchableOpacity 
+      key={payment.groupId} 
+      style={styles.paymentItem}
+      onPress={() => navigation.navigate('GroupDashboard', { 
+        groupId: payment.groupId 
+      })}
+    >
+      <MaterialIcons name="account-balance-wallet" size={24} color="#10B981" />
+      <View style={styles.paymentInfo}>
+        <Text style={styles.paymentTitle}>{payment.groupName}</Text>
+        <Text style={styles.paymentDate}>
+          Next Payment: {payment.nextPaymentDate}
+        </Text>
+      </View>
+      <Text style={styles.paymentAmount}>
+        ₦{payment.amount.toLocaleString()}
+      </Text>
+    </TouchableOpacity>
+  ));
+};
+
 
   useEffect(() => {
     const checkPin = async () => {
@@ -53,13 +186,14 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
         setShowPinEntry(true);
       }
     };
+    
     checkPin();
-    fetchUserData(); // Fetch balance and user info on mount
-  }, [route.params?.updatedBalance]); // Add `updatedBalance` to dependency array to trigger re-fetch
+    fetchUserData();
+  }, [route.params?.updatedBalance]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchUserData(); // Re-fetch user data on pull-to-refresh
+    await fetchUserData();
     setRefreshing(false);
   }, []);
 
@@ -111,6 +245,7 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
       setPinError('Incorrect PIN. Please try again.');
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -180,33 +315,12 @@ const Dashboard = ({ route, navigation }: RouterProps) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.schedulePayments}>
-          <Text style={styles.sectionTitle}>Schedule Payments</Text>
-          <TouchableOpacity style={styles.paymentItem}>
-            <MaterialIcons name="account-balance-wallet" size={24} color="#10B981" />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Taj Corporative</Text>
-              <Text style={styles.paymentDate}>Next Payment: 12/04</Text>
-            </View>
-            <Text style={styles.paymentAmount}>₦10,000</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.paymentItem}>
-            <MaterialIcons name="account-balance-wallet" size={24} color="#10B981" />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Taj Corporative</Text>
-              <Text style={styles.paymentDate}>Next Payment: 12/04</Text>
-            </View>
-            <Text style={styles.paymentAmount}>₦10,000</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.paymentItem}>
-            <MaterialIcons name="account-balance-wallet" size={24} color="#10B981" />
-            <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Taj Corporative</Text>
-              <Text style={styles.paymentDate}>Next Payment: 12/04</Text>
-            </View>
-            <Text style={styles.paymentAmount}>₦10,000</Text>
-          </TouchableOpacity>
-        </View>
+        
+
+<View style={styles.schedulePayments}>
+  <Text style={styles.sectionTitle}>Schedule Payments</Text>
+  {renderSchedulePayments()}
+</View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -501,6 +615,17 @@ left: -20,
   optionText: {
     fontSize: 16,
     color: '#4B0082',
+  },
+  noPayments: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noPaymentsText: {
+    color: '#6B7280',
+    fontSize: 14,
   },
 });
 
