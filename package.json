@@ -4,8 +4,8 @@
   "main": "expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "build": "echo 'No build step required'"
   },
@@ -23,8 +23,10 @@
     "dotenv": "^16.4.5",
     "expo": "^52.0.8",
     "expo-clipboard": "~7.0.0",
+    "expo-dev-client": "~5.0.19",
     "expo-image-picker": "~16.0.2",
     "expo-status-bar": "~2.0.0",
+    "expo-system-ui": "^4.0.9",
     "express": "^4.21.1",
     "firebase": "^10.12.3",
     "firebase-admin": "^12.7.0",

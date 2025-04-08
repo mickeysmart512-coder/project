@@ -9,7 +9,12 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "android":{
+        "buildType": "apk",
+         "gradleCommand": ":app:assembleRelease",
+        "image": "latest"
+      }
     },
     "production": {
       "autoIncrement": true
@@ -19,3 +24,4 @@
     "production": {}
   }
 }
+
