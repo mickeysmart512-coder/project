@@ -23,4 +23,4 @@ workflows:
     publishing:
       email:
         recipients:
-          - onojamichaelmichael@gmail.com
+          - onojamichaelmichael@gmail.com # you can update this to your actual email
