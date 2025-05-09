@@ -1,26 +1,44 @@
+# workflows:
+#   expo-eas-apk:
+#     name: Expo EAS Build (APK)
+#     max_build_duration: 60
+#     environment:
+#       node: 18
+#       java: 17
+#       vars:
+#         EAS_NO_VCS:  
+#       groups:
+#         - expo_credentials
+#     scripts:
+#       - name: Install dependencies
+#         script: npm install
+#       - name: Install EAS CLI
+#         script: npm install -g eas-cli
+#       - name: Authenticate with Expo
+#         script: eas whoami || eas login --token $EXPO_TOKEN
+#       - name: Build APK using EAS
+#         script: eas build --platform android --profile preview --non-interactive
+#     artifacts:
+#       - build/**/*.apk
+#     publishing:
+#       email:
+#         recipients:
+#           - onojamichaelmichael@gmail.com # you can update this to your actual email
+
+
+
 workflows:
-  expo-eas-apk:
-    name: Expo EAS Build (APK)
-    max_build_duration: 60
+  expo-android-workflow:
+    name: Expo Android Build
     environment:
-      node: 18
-      java: 17
-      vars:
-        EAS_NO_VCS: 1
       groups:
-        - expo_credentials
+        - expo_credentials  # Store EXPO_TOKEN here
+    triggering:
+      events:
+        - push
     scripts:
-      - name: Install dependencies
-        script: npm install
-      - name: Install EAS CLI
-        script: npm install -g eas-cli
-      - name: Authenticate with Expo
-        script: eas whoami || eas login --token $EXPO_TOKEN
-      - name: Build APK using EAS
-        script: eas build --platform android --profile preview --non-interactive
+      - npm install -g eas-cli
+      - npm install
+      - eas build --platform android --non-interactive
     artifacts:
-      - build/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - onojamichaelmichael@gmail.com # you can update this to your actual email
+      - build/**/*.apk  # or *.aab
