@@ -41,4 +41,4 @@ workflows:
       - npm install
       - eas build --platform android --non-interactive
     artifacts:
-      - build/**/*.apk  # or *.aab
+      - build/**/*.apk  
