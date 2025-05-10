@@ -27,18 +27,42 @@
 
 
 
+# workflows:
+#   expo-android-workflow:
+#     name: Expo Android Build
+#     environment:
+#       groups:
+#         - expo_credentials  # Store EXPO_TOKEN here
+#     triggering:
+#       events:
+#         - push
+#     scripts:
+#       - npm install -g eas-cli
+#       - npm install
+#       - eas build --platform android --non-interactive
+#     artifacts:
+#       - build/**/*.apk  
+
+
+
 workflows:
-  expo-android-workflow:
-    name: Expo Android Build
+  android-build:
+    name: Android APK Build
     environment:
       groups:
-        - expo_credentials  # Store EXPO_TOKEN here
+        - expo_credentials  # Will store your EXPO_TOKEN
     triggering:
       events:
         - push
     scripts:
+      # Install dependencies
       - npm install -g eas-cli
       - npm install
-      - eas build --platform android --non-interactive
+      
+      # Clean Gradle cache
+      - cd android && ./gradlew clean && cd ..
+      
+      # Build APK with EAS
+      - eas build --platform android --profile preview --non-interactive
     artifacts:
-      - build/**/*.apk  
+      - build/**/*.apk  # The generated APK will be here
