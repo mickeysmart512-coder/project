@@ -43,26 +43,25 @@
 #     artifacts:
 #       - build/**/*.apk  
 
-
-
 workflows:
   android-build:
     name: Android APK Build
     environment:
       groups:
-        - expo_credentials  # Will store your EXPO_TOKEN
+        - expo_credentials
     triggering:
       events:
         - push
     scripts:
-      # Install dependencies
+      # 1. Install dependencies
       - npm install -g eas-cli
       - npm install
       
-      # Clean Gradle cache
+      # 2. Fix gradlew permissions and clean (NEW FIX)
+      - chmod +x android/gradlew
       - cd android && ./gradlew clean && cd ..
       
-      # Build APK with EAS
+      # 3. Build with EAS
       - eas build --platform android --profile preview --non-interactive
     artifacts:
-      - build/**/*.apk  # The generated APK will be here
+      - build/**/*.apk
