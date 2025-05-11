@@ -1,0 +1,44 @@
+
+# workflows:
+#   android-build:
+#     name: Android APK Build
+#     environment:
+#       groups:
+#         - expo_credentials
+#     triggering:
+#       events:
+#         - push
+#     scripts:
+#       # 1. Install dependencies
+#       - npm install -g eas-cli
+#       - npm install
+      
+#       # 2. Fix gradlew permissions and clean (NEW FIX)
+#       - chmod +x android/gradlew
+#       - cd android && ./gradlew clean && cd ..
+      
+#       # 3. Build with EAS
+#       - eas build --platform android --profile preview --non-interactive
+#     artifacts:
+#       - build/**/*.apk
+
+workflows:
+  android-build:
+    name: Android APK Build
+    environment:
+      groups:
+        - expo_credentials
+      vars:
+        JAVA_HOME: "/usr/lib/jvm/java-11-openjdk-amd64"  # Force Java 11
+    triggering:
+      events:
+        - push
+    scripts:
+      # Install dependencies
+      - npm install -g eas-cli
+      - npm install
+      
+      # Build with EAS (no manual Gradle clean needed)
+      - eas build --platform android --profile preview --non-interactive
+    artifacts:
+      - build/**/*.apk

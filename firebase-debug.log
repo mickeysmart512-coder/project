@@ -1,0 +1,75 @@
+[debug] [2024-10-26T16:03:27.682Z] ----------------------------------------------------------------------
+[debug] [2024-10-26T16:03:27.686Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\MICHAEL\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init functions
+[debug] [2024-10-26T16:03:27.687Z] CLI Version:   13.23.0
+[debug] [2024-10-26T16:03:27.687Z] Platform:      win32
+[debug] [2024-10-26T16:03:27.687Z] Node Version:  v21.2.0
+[debug] [2024-10-26T16:03:27.688Z] Time:          Sat Oct 26 2024 17:03:27 GMT+0100 (West Africa Standard Time)
+[debug] [2024-10-26T16:03:27.688Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-10-26T16:03:27.693Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2024-10-26T16:03:27.875Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-10-26T16:03:27.876Z] > authorizing via signed-in user (onojamichaelmichael@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\MICHAEL\SAVII
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[debug] [2024-10-26T16:03:30.756Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2024-10-26T16:03:30.757Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] but for now we'll just set up a default project.
+[info] 
+[debug] [2024-10-26T16:03:34.949Z] Using project from CLI flag: savii-8d155
+[debug] [2024-10-26T16:03:34.951Z] Checked if tokens are valid: false, expires at: 1728516141833
+[debug] [2024-10-26T16:03:34.952Z] Checked if tokens are valid: false, expires at: 1728516141833
+[debug] [2024-10-26T16:03:34.952Z] > refreshing access token with scopes: []
+[debug] [2024-10-26T16:03:34.954Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2024-10-26T16:03:34.954Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-10-26T16:03:46.886Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2024-10-26T16:03:46.886Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-10-26T16:03:47.033Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/savii-8d155 [none]
+[debug] [2024-10-26T16:03:52.023Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/savii-8d155 200
+[debug] [2024-10-26T16:03:52.024Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/savii-8d155 {"projectId":"savii-8d155","projectNumber":"802013761909","displayName":"Savii","name":"projects/savii-8d155","resources":{"hostingSite":"savii-8d155"},"state":"ACTIVE","etag":"1_799a126e-938b-4e9f-a7c6-d6df291595db"}
+[info] i  Using project savii-8d155 (Savii) 
+[info] 
+=== Functions Setup
+[debug] [2024-10-26T16:03:52.082Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-10-26T16:03:52.083Z] > authorizing via signed-in user (onojamichaelmichael@gmail.com)
+[debug] [2024-10-26T16:03:52.083Z] [iam] checking project savii-8d155 for permissions ["firebase.projects.get"]
+[debug] [2024-10-26T16:03:52.084Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:52.085Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:52.085Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/savii-8d155:testIamPermissions [none]
+[debug] [2024-10-26T16:03:52.085Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/savii-8d155:testIamPermissions x-goog-quota-user=projects/savii-8d155
+[debug] [2024-10-26T16:03:52.085Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/savii-8d155:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2024-10-26T16:03:58.336Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/savii-8d155:testIamPermissions 200
+[debug] [2024-10-26T16:03:58.337Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/savii-8d155:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2024-10-26T16:03:58.339Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:58.339Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:58.340Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:58.340Z] Checked if tokens are valid: true, expires at: 1729962225887
+[debug] [2024-10-26T16:03:58.342Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/cloudfunctions.googleapis.com [none]
+[debug] [2024-10-26T16:03:58.342Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/cloudfunctions.googleapis.com x-goog-quota-user=projects/savii-8d155
+[debug] [2024-10-26T16:03:58.348Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/runtimeconfig.googleapis.com [none]
+[debug] [2024-10-26T16:03:58.348Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/runtimeconfig.googleapis.com x-goog-quota-user=projects/savii-8d155
+[debug] [2024-10-26T16:04:10.254Z] *** [apiv2] error from fetch(https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/cloudfunctions.googleapis.com, {"headers":{},"method":"GET"}): FetchError: request to https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/cloudfunctions.googleapis.com failed, reason: getaddrinfo ENOTFOUND serviceusage.googleapis.com
+[debug] [2024-10-26T16:04:10.263Z] *** [apiv2] error from fetch(https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/runtimeconfig.googleapis.com, {"headers":{},"method":"GET"}): FetchError: request to https://serviceusage.googleapis.com/v1/projects/savii-8d155/services/runtimeconfig.googleapis.com failed, reason: getaddrinfo ENOTFOUND serviceusage.googleapis.com
+[debug] [2024-10-26T16:04:15.599Z] Error: Timed out.
+    at Timeout._onTimeout (C:\Users\MICHAEL\AppData\Roaming\npm\node_modules\firebase-tools\lib\utils.js:268:49)
+    at listOnTimeout (node:internal/timers:573:17)
+    at process.processTimers (node:internal/timers:514:7)
+[error] 
+[error] Error: An unexpected error has occurred.

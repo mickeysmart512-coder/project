@@ -1,0 +1,81 @@
+# # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# # dependencies
+# node_modules/
+
+# # Expo
+# .expo/
+# dist/
+# web-build/
+
+# # Native
+# *.orig.*
+# *.jks
+# *.p8
+# *.p12
+# *.key
+# *.mobileprovision
+
+# # Metro
+# .metro-health-check*
+
+# # debug
+# npm-debug.*
+# yarn-debug.*
+# yarn-error.*
+
+# # macOS
+# .DS_Store
+# *.pem
+
+# # local env files
+# .env*.local
+
+# # typescript
+# *.tsbuildinfo
+
+# .vercel
+
+# Node dependencies
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# EAS Build: ignore native folders if using prebuild
+android/
+ios/
+
+# OS/system
+.DS_Store
+Thumbs.db
+
+# Environment and keys
+.env
+.env.*
+*.pem
+*.key
+*.jks
+*.p8
+*.p12
+*.mobileprovision
+
+# Git merge/patch artifacts
+*.orig.*
+
+# Debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Metro cache health
+.metro-health-check*
+
+# TypeScript
+*.tsbuildinfo
+
+# Deployment/platforms
+.vercel
